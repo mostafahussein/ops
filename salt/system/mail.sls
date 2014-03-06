@@ -1,4 +1,8 @@
-alias.root:
+{% import_yaml "config/alias.yaml" as alias with context %}
+
+{% for f in alias.get('aliases', ()) %}
+alias.{{ f.name }}:
   alias.present:
-    - name: root
-    - target: it@intra.knownsec.com
+    - name: {{ f.name }}
+    - target: {{ f.target }}
+{% endfor %}

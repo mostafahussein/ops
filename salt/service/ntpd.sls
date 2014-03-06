@@ -13,7 +13,7 @@ service.ntpd:
       - file: service.ntpd
   file.managed:
     - name: /etc/ntp.conf
-{% if ntp.is_ntp_server is defined  %}
+{% if ntp.is_server is defined  %}
     - source: salt://common/etc/ntp-server.conf
 {% else %}
     - source: salt://common/etc/ntp-client.conf
@@ -21,3 +21,4 @@ service.ntpd:
     - mode: 644
     - user: root
     - group: root
+    - template: jinja

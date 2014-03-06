@@ -71,6 +71,7 @@ service.exim:
     - mode: 0644
     - user: root
     - group: root
+    - template: jinja
 {% elif grains['os'] == "Ubuntu" %}
     - sig: "usr/sbin/exim4 -bd -q"
 {% endif %}
