@@ -1,6 +1,6 @@
 {% import_yaml "config/mail.yaml" as mail with context %}
 
-{% if mail.postfix_enabled %}
+{% if mail.postfix_enabled is defined %}
 
 service.postfix:
   service.running:

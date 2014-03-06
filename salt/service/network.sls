@@ -1,6 +1,6 @@
 {% if grains['os'] == "Gentoo" %}
 
-{%- import_yaml "config/nics.yaml" as nics with context -%}
+  {% import_yaml "config/nics.yaml" as nics with context %}
 
 /etc/conf.d/net:
   file.managed:
@@ -9,13 +9,13 @@
     - user: root
     - group: root
 
-{% for i in nics.get('nics', []) %}
+  {% for i in nics.get('nics', []) %}
 service.net.{{ i }}:
   service.enabled:
     - name: net.{{ i }}
   file.symlink:
     - name: /etc/init.d/net.{{ i }}
     - target: net.lo
-{% endfor %}
+  {% endfor %}
 
 {% endif %}

@@ -16,7 +16,7 @@ service.sysctl:
     - watch:
       - file: service.sysctl
       - file: /etc/sysctl.d/rp_filter.conf
-{% if gateway.is_gateway %}
+{% if gateway.is_gateway is defined %}
       - file: /etc/sysctl.d/gw.conf
 
 /etc/sysctl.d/gw.conf:

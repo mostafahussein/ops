@@ -24,7 +24,8 @@ service.crond:
     - group: root
     - mode: 0644
 
-{% if crond.crond_files is defined %}
+{% if crond.crond_files is defined and
+    crond.crond_files is iterable %}
   {% for f in crond.get("crond_files", ()) %}
 {{ f.name }}:
   file.managed:

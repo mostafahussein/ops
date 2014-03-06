@@ -1,4 +1,4 @@
-{%- import_yaml "config/redis.yaml" as redis with context -%}
+{% import_yaml "config/redis.yaml" as redis with context %}
 
 /etc/init.d/redis.svc:
 {% if redis.get('redis_srvs') %}

@@ -1,4 +1,4 @@
-{%- import_yaml "config/salt.yaml" as salt with context -%}
+{% import_yaml "config/salt.yaml" as salt with context %}
 
 /etc/salt/grains:
   file.managed:

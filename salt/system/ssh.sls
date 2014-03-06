@@ -1,4 +1,4 @@
-{%- import_yaml "config/ssh.yaml" as ssh with context -%}
+{% import_yaml "config/ssh.yaml" as ssh with context %}
 {% for f in ssh.get('ssh_pubkeys') %}
 {{ f.name }}:
   file.managed:

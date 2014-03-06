@@ -3,5 +3,5 @@
 # Set to the hostname of this machine
 hostname="{{ idname }}"
 {%- else -%}
-{{ idtname }}
+{{ idname }}
 {%- endif -%}

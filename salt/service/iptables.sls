@@ -3,9 +3,7 @@
 service.iptables:
   service:
     - name: iptables
-{% if not iptables.get('iptables_enabled') %}
-    - disabled
-{% else %}
+{% if iptables.iptables_enabled is defined %}
     - enabled
     - reload: True
     - watch:
@@ -17,9 +15,11 @@ service.iptables:
     - group: root
     - template: jinja
     - source: salt://var/lib/iptables/{{ iptables['iptables_rules'] }}
+{% else %}
+    - disabled
 {% endif %}
 
-{% if iptables.get('iptables_enabled') %}
+{% if iptables.iptables_enabled is defined %}
 /etc/conf.d/iptables:
   file.managed:
     - source: salt://common/etc/conf.d/iptables
@@ -29,7 +29,7 @@ service.iptables:
     - template: jinja
 {% endif %}
 
-{% if iptables.get('ipset_enabled') %}
+{% if iptables.ipset_enabled is defined %}
 service.ipset:
   service.enabled:
     - name: ipset

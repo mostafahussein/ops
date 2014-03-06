@@ -1,4 +1,4 @@
-{%- import_yaml "config/uwsgi.yaml" as uwsgi with context -%}
+{% import_yaml "config/uwsgi.yaml" as uwsgi with context %}
 
 {% if uwsgi.uwsgi_apps is defined %}
   {% for s in uwsgi.get('uwsgi_apps', ()) %}

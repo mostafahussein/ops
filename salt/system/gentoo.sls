@@ -43,7 +43,7 @@ eselect.profile:
   file.absent
 
 /etc/udev/rules.d/80-net-name-slot.rules:
-{% if udev.get('predictable_nic_name') %}
+{% if udev.predictable_nic_name is defined %}
   file.absent
 {% else %}
   file.symlink:

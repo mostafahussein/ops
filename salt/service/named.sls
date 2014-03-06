@@ -1,4 +1,4 @@
-{%- import_yaml "config/named.yaml" as named with context -%}
+{% import_yaml "config/named.yaml" as named with context %}
 service.named:
   service.running:
     - name: named
@@ -43,14 +43,14 @@ service.named:
   file.{{ f.op }}:
     - user: {{ f.user }}
     - group: {{ f.group }}
-{% if f.op == "symlink" %}
+  {% if f.op == "symlink" %}
     - target: {{ f.target }}
-{% else %}
+  {% else %}
     - mode: {{ f.mode }}
-{% endif %}
-{% if f.op == "mknod" %}
+  {% endif %}
+  {% if f.op == "mknod" %}
     - ntype: {{ f.ntype }}
     - major: {{ f.major }}
     - minor: {{ f.minor }}
-{% endif %}
+  {% endif %}
 {% endfor %}
