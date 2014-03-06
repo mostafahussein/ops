@@ -1,0 +1,14 @@
+{%- load_yaml as app -%}
+{{ s }}
+{%- endload -%}
+UWSGI_SOCKET=/run/uwsgi_{{ app.name }}/{{ app.name }}.sock
+UWSGI_THREADS={{ app.attrs.get('threads', "") }}
+UWSGI_PROCESSES={{ app.attrs.get('processes', "") }}
+UWSGI_PROGRAM={{ app.attrs.get('program', "") }}
+UWSGI_XML_CONFIG={{ app.attrs.get('xml_config', "") }}
+UWSGI_LOG_FILE={{ app.attrs.get('log_file', "") }}
+UWSGI_CHROOT={{ app.attrs.get('chroot', "") }}
+UWSGI_DIR={{ app.attrs.get('dir', "") }}
+UWSGI_USER={{ app.attrs.get('user', "") }}
+UWSGI_GROUP={{ app.attrs.get('group', "") }}
+UWSGI_EXTRA_OPTIONS={{ app.attrs.get('options', "") }}

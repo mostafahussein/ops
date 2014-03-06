@@ -1,0 +1,7 @@
+{%- import_yaml "ssh/pubkeys.yaml" as pubkeys -%}
+{%- load_yaml as users -%}
+{{ allows }}
+{%- endload -%}
+{% for u in users -%}
+{{ pubkeys.get(u) }}
+{% endfor %}

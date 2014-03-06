@@ -1,0 +1,3 @@
+auth     required pam_listfile.so onerr=fail item=user sense={{ sense }} file=/etc/nginx/{{ restrict }}
+auth     required pam_ldap.so try_first_pass ignore_unknown_user config=/etc/ldap-{{ group }}.conf
+account  required pam_ldap.so

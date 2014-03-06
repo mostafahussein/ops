@@ -1,0 +1,2 @@
+{%- import_yaml "config/kerberos.yaml" as krb with context -%}
+*/admin@{{ krb.krb5_realm | upper }} *

@@ -1,0 +1,22 @@
+{%- load_yaml as clientconf -%}
+{{ s }}
+{%- endload -%}
+{%- if clientconf.get('loc') -%}
+  {%- from 'site/config/network.yaml' import ninfo -%}
+  {%- load_yaml as locinfo -%}
+    {{ ninfo(clientconf.get('loc')) }}
+  {%- endload -%}
+{%- endif -%}
+ifconfig-push {{ clientconf.ip }}
+{% if clientconf.get('loc') %}{% for i in locinfo.get('iroute_v4') -%}
+iroute {{ i }}
+{% endfor %}{% endif -%}
+{% if clientconf.ipv6 is defined -%}
+ifconfig-ipv6-push {{ clientconf.ipv6 }}
+{% endif -%}
+{% if clientconf.get('loc') %}{% for i in locinfo.get('localnet_v6') -%}
+iroute-ipv6 {{ i }}
+{% endfor %}{% endif -%}
+{% if clientconf.push is defined -%}
+push "{{ clientconf.push }}"
+{% endif -%}

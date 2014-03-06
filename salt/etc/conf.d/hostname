@@ -1,0 +1,7 @@
+{%- set idname = grains['id'].split(".")[0] -%}
+{%- if grains['os'] == "Gentoo" -%}
+# Set to the hostname of this machine
+hostname="{{ idname }}"
+{%- else -%}
+{{ idtname }}
+{%- endif -%}

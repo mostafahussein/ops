@@ -1,0 +1,3 @@
+#!/bin/sh
+
+service sysctl restart > /dev/null 2>&1
