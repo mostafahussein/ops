@@ -1,5 +1,6 @@
 service.mcelog:
-{% if grains['cpu_model'].startswith("AMD") %}
+{% if grains.get('virtual') != 'physics' or
+  grains['cpu_model'].startswith("AMD") %}
   service.disabled:
 {% else %}
   service.running:
