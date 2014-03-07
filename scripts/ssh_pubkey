@@ -1,0 +1,57 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import os
+import re
+import sys
+import yaml
+import hashlib
+import traceback
+import collections
+
+from os import path as osp
+
+conf_dir = osp.join(osp.realpath(__file__), "utils")
+if conf_dir not in sys.path:
+    sys.path.insert(0, conf_dir)
+
+from utils import ldap_ops as ldap_ops
+
+if __name__ == "__main__":
+    try:
+        pubkeys = {}
+        pubfile = "pubkeys.yaml"
+
+        slapd = ldap_ops.ldap_ops()
+
+        users = slapd.query_users(attrs = ["uid", "mail", "sshPublicKey"])
+        for user in users:
+            user = user[1]
+            uid = user.get('uid')[0]
+            mail = user.get('mail', [None])[0]
+            pubkey = user.get('sshPublicKey', [None])[0]
+            if pubkey and mail:
+                pubcontent = '%s %s' % (pubkey.strip(), mail)
+                m = hashlib.md5()
+                m.update(pubcontent)
+                pubmd5 =m.hexdigest()
+                pubkeys[uid] = pubcontent
+
+        if osp.exists(pubfile):
+            oldkeys = yaml.load(file(pubfile, 'r'))
+        else:
+            oldkeys = {}
+
+        if oldkeys != pubkeys:
+            print " >> changed, rewrite yaml"
+            f = open(pubfile, 'w')
+            keys = pubkeys.keys()
+            keys.sort()
+            for k in keys:
+                f.write('%s: "%s"\n' % (k, pubkeys[k]))
+            f.close()
+        else:
+            print " >> no change, exit"
+
+    except ldap_ops.LDAPError as e:
+        print("!! %s" % e)

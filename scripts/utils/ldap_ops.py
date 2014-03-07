@@ -105,6 +105,14 @@ class ldap_ops:
         return self.ldapobject.search_s(basedn, ldap.SCOPE_SUBTREE,
                                         filters, attrs)
 
+    def query_users(self, **kwargs):
+        args = {
+            'basedn': 'user',
+            'filters' : kwargs.get("filters", self.user_filters % '*'),
+            'attrs' : kwargs.get("attrs", None)
+        }
+        return self.query(**args)
+
     def get_next_uidNumber(self):
         args = {
             'filters': self.user_filters % '*',
