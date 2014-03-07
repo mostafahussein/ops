@@ -17,6 +17,6 @@ ifconfig-ipv6-push {{ clientconf.ipv6 }}
 {% if clientconf.get('loc') %}{% for i in locinfo.get('localnet_v6') -%}
 iroute-ipv6 {{ i }}
 {% endfor %}{% endif -%}
-{% if clientconf.push is defined -%}
-push "{{ clientconf.push }}"
-{% endif -%}
+{% if clientconf.push is defined %}{% for i in clientconf.push -%}
+push "{{ i }}"
+{% endfor %}{% endif -%}
