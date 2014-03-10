@@ -1,5 +1,14 @@
 {% import_yaml "config/rsyncd.yaml" as rsyncd with context %}
 
+{% if grains['os'] == "Ubuntu" %}
+/etc/default/rsync:
+  file.managed:
+    - source: salt://common/etc/default/rsync
+    - mode: 644
+    - user: root
+    - group: root
+{% endif %}
+
 service.rsyncd:
   service.running:
 {% if grains['os'] == "Gentoo" %}
@@ -12,6 +21,9 @@ service.rsyncd:
     - enable: True
     - watch:
       - file: service.rsyncd
+{% if grains['os'] == "Ubuntu" %}
+      - file: /etc/default/rsync
+{% endif %}
   file.managed:
     - name: /etc/rsyncd.conf
     - source: salt://common/etc/rsyncd.conf
