@@ -16,7 +16,7 @@ SNMPDOPTS='-Lf /dev/null -LS0-4d -u snmp -g snmp -I -smux -p /var/run/snmpd.pid'
 TRAPDRUN=no
 
 # snmptrapd options (use syslog).
-TRAPDOPTS='-p /var/run/snmptrapd.pid'
+TRAPDOPTS='-LS0-4d -p /var/run/snmptrapd.pid'
 
 # create symlink on Debian legacy location to official RFC path
 SNMPDCOMPAT=yes
