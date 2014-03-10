@@ -55,16 +55,12 @@ service.spamd:
 
 service.exim:
   service.running:
-{% if grains['os'] == "Gentoo" %}
-    - name: exim
-{% elif grains['os'] == "Ubuntu" %}
-    - name: exim4
-{% endif %}
     - enable: True
-{% if grains['os'] == "Gentoo" %}
-    - sig: "/usr/sbin/exim -C /etc/exim/exim.conf"
     - watch:
       - file: service.exim
+{% if grains['os'] == "Gentoo" %}
+    - name: exim
+    - sig: "/usr/sbin/exim -C /etc/exim/exim.conf"
   file.managed:
     - name: /etc/exim/exim.conf
     - source: salt://common/etc/exim/exim.conf
@@ -73,7 +69,15 @@ service.exim:
     - group: root
     - template: jinja
 {% elif grains['os'] == "Ubuntu" %}
+    - name: exim4
     - sig: "usr/sbin/exim4 -bd -q"
+  file.managed:
+    - name: /etc/exim4/update-exim4.conf.conf
+    - source: salt://common/etc/exim/update-exim4.conf.conf
+    - mode: 0644
+    - user: root
+    - group: root
+    - template: jinja
 {% endif %}
 
 {% endif %}
