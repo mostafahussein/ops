@@ -1,5 +1,6 @@
 {% for f in (
   "default/rcS",
+  "init/failsafe.conf",
   "initramfs-tools/initramfs.conf",
   "initramfs-tools/update-initramfs.conf",
   "kernel-img.conf",
