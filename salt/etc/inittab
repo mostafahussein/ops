@@ -57,8 +57,6 @@ ca:12345:ctrlaltdel:/sbin/shutdown -r now
 # extra at boot if /etc/init.d/xdm is not added
 # to the "default" runlevel.
 x:a:once:/etc/X11/startDM.sh
-{% if inittab.entries is defined -%}
-{% for e in inittab.get('entries', ()) %}
-{{ e }}
-{%- endfor %}
+{% if inittab.entries is defined %}
+{{ inittab.get('entries', ()) | join('\n') }}
 {%- endif %}
