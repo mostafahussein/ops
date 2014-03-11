@@ -7,24 +7,33 @@ import sys
 import yaml
 import hashlib
 import traceback
-import collections
+import argparse
 
+try:
+    import ldap
+except ImportError:
+    sys.stderr.write("python ldap module not found")
+    sys.exit(1)
+ 
 from os import path as osp
 
-conf_dir = osp.join(osp.realpath(__file__), "utils")
+conf_dir = osp.join(osp.realpath(__file__), 'utils')
 if conf_dir not in sys.path:
     sys.path.insert(0, conf_dir)
 
 from utils import ldap_ops as ldap_ops
 
-if __name__ == "__main__":
+
+def ldap_dump2yaml(outfile=None):
+    """dump user's pubkey from ldap, save as yaml"""
+    print(">>> dump user's pubkey to `%s'" %
+          (outfile if outfile else 'STDOUT'))
     try:
         pubkeys = {}
-        pubfile = "pubkeys.yaml"
 
         slapd = ldap_ops.ldap_ops()
 
-        users = slapd.query_users(attrs = ["uid", "mail", "sshPublicKey"])
+        users = slapd.query_users(attrs=['uid', 'mail', 'sshPublicKey'])
         for user in users:
             user = user[1]
             uid = user.get('uid')[0]
@@ -34,24 +43,103 @@ if __name__ == "__main__":
                 pubcontent = '%s %s' % (pubkey.strip(), mail)
                 m = hashlib.md5()
                 m.update(pubcontent)
-                pubmd5 =m.hexdigest()
+                pubmd5 = m.hexdigest()
                 pubkeys[uid] = pubcontent
 
-        if osp.exists(pubfile):
-            oldkeys = yaml.load(file(pubfile, 'r'))
+        if outfile and osp.exists(outfile):
+            print(">>> load exist pubkey from `%s'" % (outfile,))
+            oldkeys = yaml.load(file(outfile, 'r'))
         else:
             oldkeys = {}
 
         if oldkeys != pubkeys:
-            print " >> changed, rewrite yaml"
-            f = open(pubfile, 'w')
+            f = open(outfile, 'w') if outfile else sys.stdout
             keys = pubkeys.keys()
             keys.sort()
             for k in keys:
                 f.write('%s: "%s"\n' % (k, pubkeys[k]))
             f.close()
+            if outfile:
+                print(">>> change found, update saved to `%s'" % (outfile,))
         else:
-            print " >> no change, exit"
+            print('>>> no change found, keep exist')
 
     except ldap_ops.LDAPError as e:
-        print("!! %s" % e)
+        print('!!! %s' % e)
+
+
+def pubkey_save2ldap(uid=None, infile=None):
+    arg_checked = True
+    if not uid:
+        print('!!! uid not specified, abort')
+        arg_checked = False
+    if not infile:
+        print('!!! pubkey file must specified')
+        arg_checked = False
+    if not osp.exists(infile):
+        print("!!! pubkey file `%s' not found" % (infile,))
+        arg_checked = False
+
+    if not arg_checked:
+        return
+
+    slapd = ldap_ops.ldap_ops()
+
+    users = slapd.query_users(attrs=['uid',
+                                     'mail',
+                                     'objectClass',
+                                     'sshPublicKey'],
+                              filters=slapd.user_filters % (uid,))
+
+    if len(users) != 1:
+        print('!!! invalid uid, %d entry(s) found' % (len(users),))
+        return
+
+    user = users[0]
+    dn = user[0]
+    attrs = user[1]
+
+    if 'mail' not in attrs:
+        print('!!! mail address missing, abort')
+        return
+
+    modlist = []
+    pubkey = open(infile, "r+").read().strip()
+    if 'sshPublicKey' in attrs:
+        if pubkey == attrs['sshPublicKey'][0]:
+            print("%s's pubkey unchanged" % (uid,))
+            return
+        else:
+            modlist.append((ldap.MOD_MOD, 'sshPublicKey', pubkey))
+    else:
+        modlist.append((ldap.MOD_ADD, 'sshPublicKey', pubkey))
+    if 'ldapPublicKey' not in attrs['objectClass']:
+        modlist.append((ldap.MOD_ADD, 'objectClass', 'ldapPublicKey'))
+
+    if len(modlist):
+        print(">>> update %s's pubkey" % (uid,))
+        slapd.update(dn=dn, modlist=modlist)
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='SSH pubkey operation')
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument('-d', '--dump',
+                       help="dump user's pubkey to stdout or file",
+                       default=False, action='store_true')
+    group.add_argument('-m', '--modify',
+                       help="update user's pubkey from file",
+                       default=False, action='store_true')
+    parser.add_argument('-f', '--file', help='file to be operated with')
+    parser.add_argument('--uid', help='uid to be modified')
+
+    args = parser.parse_args()
+
+    if args.dump:
+        ldap_dump2yaml(outfile=args.file)
+    elif args.modify:
+        if not args.file:
+            parser.print_help()
+        else:
+            pubkey_save2ldap(uid=args.uid, infile=args.file)
+    else:
+        parser.print_help()

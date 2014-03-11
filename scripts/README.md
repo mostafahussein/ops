@@ -10,7 +10,7 @@ bind_pass: password
 krb5_realm: DEMO.LOCAL
 krb5_passwd: "kadmin.local -q 'ank -pw %s %s'"
 
-# vim: ts=4 filetype=yaml
+# vim: ts=2 filetype=yaml
 </pre>
 
 prepare user info.

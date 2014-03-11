@@ -105,6 +105,11 @@ class ldap_ops:
         return self.ldapobject.search_s(basedn, ldap.SCOPE_SUBTREE,
                                         filters, attrs)
 
+    def update(self, **kwargs):
+        dn = kwargs.get('dn')
+        modlist = kwargs.get('modlist')
+        return self.ldapobject.modify_ext_s(dn, modlist)
+
     def query_users(self, **kwargs):
         args = {
             'basedn': 'user',
@@ -228,4 +233,4 @@ class ldap_ops:
                         print("  >> add `%s'" % op[2])
                     elif op[0] == ldap.MOD_DELETE:
                         print("  >> del `%s'" % op[2])
-            self.ldapobject.modify_ext_s(grp[0], grp_modlist)
+            self.update(dn=grp[0], modlist=grp_modlist)
