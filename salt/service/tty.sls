@@ -26,6 +26,9 @@
       {% if tty.lxc is defined %}
         lxc: {{ tty.lxc }}
       {% endif %}
+      {% if tty.noclear is defined %}
+        noclear: {{ tty.noclear }}
+      {% endif %}
       {% if tty.manual is defined %}
         manual: {{ tty.manual }}
       {% endif %}
