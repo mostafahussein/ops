@@ -8,6 +8,12 @@
     - group: root
     - template: jinja
 
+{% if grains['os'] == "Gentoo" %}
+{% set minion_confs = ("aliases", "config", "master", "output") %}
+{% else %}
+{% set minion_confs = ("config", "master", "output") %}
+{% endif %}
+
 service.salt-minion:
   service.running:
     - name: salt-minion
@@ -18,57 +24,44 @@ service.salt-minion:
     - sig: "su -c salt-minion"
 {% endif %}
     - watch:
-      - file: service.salt-minion
-      - file: /etc/salt/minion.d/config.conf
-{% if grains['os'] == "Gentoo" %}
-      - file: /etc/salt/minion.d/aliases.conf
-{% endif %}
-  file.managed:
-    - name: /etc/salt/minion.d/master.conf
-    - source: salt://common/etc/salt/minion.d/master.conf
-    - mode: 644
-    - user: root
-    - group: root
-    - template: jinja
+{% for f in minion_confs %}
+      - file: /etc/salt/minion.d/{{ f }}.conf
+{% endfor %}
 
-{% if grains['os'] == "Gentoo" %}
-{% set minion_configs = ("aliases", "config", "output") %}
-{% else %}
-{% set minion_configs = ("config", "output") %}
-{% endif %}
-
-{% for s in minion_configs %}
+{% for s in minion_confs %}
 /etc/salt/minion.d/{{ s }}.conf:
   file.managed:
     - source: salt://common/etc/salt/minion.d/{{ s }}.conf
     - mode: 0644
     - user: root
     - group: root
+    - template: jinja
 {% endfor %}
 
 service.salt-master:
 {% if salt.get('is_salt_master') %}
+
+  {% set master_confs = ("config", "files", "pillar") %}
+
   service.running:
     - name: salt-master
     - enable: True
     - sig: "/usr/lib/python-exec/python2.7/salt-master --log-level"
     - watch:
-      - file: service.salt-master
+  {% for f in master_confs %}
+      - file: /etc/salt/master.d/config.conf
+      - file: /etc/salt/master.d/files.conf
       - file: /etc/salt/master.d/pillar.conf
-  file.managed:
-    - name: /etc/salt/master.d/files.conf
-    - source: salt://common/etc/salt/master.d/files.conf
-    - mode: 644
-    - user: root
-    - group: root
+  {% endfor %}
 
-/etc/salt/master.d/pillar.conf:
+  {% for f in master_confs %}
+/etc/salt/master.d/{{ f }}.conf:
   file.managed:
-    - name: /etc/salt/master.d/pillar.conf
-    - source: salt://common/etc/salt/master.d/pillar.conf
+    - source: salt://common/etc/salt/master.d/{{ f }}.conf
     - mode: 644
     - user: root
     - group: root
+  {% endfor %}
 {% else %}
   service.disabled:
     - name: salt-master
