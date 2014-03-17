@@ -4,35 +4,49 @@
 
   {% for tty in tty.ttys %}
 /etc/init/{{ tty.name }}.conf:
-    {% if tty.disabled is defined %}
-  file.absent
-    {% else %}
   file.managed:
-      {% if tty.rs232 is defined %}
+    {% if tty.rs232 is defined %}
     - source: salt://common/etc/init/ttyS.conf
-      {% else %}
+    {% else %}
     - source: salt://common/etc/init/tty.conf
-      {% endif %}
+    {% endif %}
     - mode: 644
     - user: root
     - group: root
     - template: jinja
     - defaults:
         tty: {{ tty.name }}
-      {% if tty.start is defined %}
+    {% if tty.start is defined %}
         start: {{ tty.start }}
         stop: {{ tty.stop }}
-      {% endif %}
-      {% if tty.lxc is defined %}
-        lxc: {{ tty.lxc }}
-      {% endif %}
-      {% if tty.noclear is defined %}
-        noclear: {{ tty.noclear }}
-      {% endif %}
-      {% if tty.manual is defined %}
-        manual: {{ tty.manual }}
-      {% endif %}
     {% endif %}
+    {% if tty.lxc is defined %}
+        lxc: {{ tty.lxc }}
+    {% endif %}
+    {% if tty.noclear is defined %}
+        noclear: {{ tty.noclear }}
+    {% endif %}
+
+/etc/init/{{ tty.name }}.override:
+    {% if tty.manual is defined %}
+  file.managed:
+    - source: salt://common/etc/init/manual.override
+    - mode: 644
+    - user: root
+    - group: root
+    - template: jinja
+
+service.{{ tty.name }}:
+  module.run:
+    - name: service.stop
+    {% else %}
+  file.absent
+
+service.{{ tty.name }}:
+  module.run:
+    - name: service.start
+    {% endif %}
+    - m_name: {{ tty.name }}
   {% endfor %}
 
 {% endif %}
