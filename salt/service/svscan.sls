@@ -12,25 +12,41 @@ service.svscan:
 
 {% if svscan.services is defined %}
   {% for s in svscan.get('services', ()) %}
+    {% if s.removed is defined %}
+service.{{ s.name }}:
+  service.dead:
+    - provider: daemontools
+    - name: {{ s.name}}
+  file.absent:
+      {% if grains['os'] == "Gentoo" %}
+    - name: /service/{{ s.name }}/run
+      {% elif grains['os'] == "Ubuntu" %}
+    - name: /etc/service/{{ s.name }}/run
+      {% endif %}
+# module.run:
+#   - name: daemontools.missing
+#   - m_name: {{ s.name}}
+    {% else %}
 service.{{ s.name }}:
   service.running:
-    {% if s.sig is defined %}
+      {% if s.sig is defined %}
     - sig: {{ s.sig}}
-    {% endif %}
+      {% endif %}
     - available: True
     - provider: daemontools
     - name: {{ s.name}}
     - watch:
       - file: service.{{ s.name }}
   file.managed:
-    {% if grains['os'] == "Gentoo" %}
+      {% if grains['os'] == "Gentoo" %}
     - name: /service/{{ s.name }}/run
-    {% elif grains['os'] == "Ubuntu" %}
+      {% elif grains['os'] == "Ubuntu" %}
     - name: /etc/service/{{ s.name }}/run
-    {% endif %}
+      {% endif %}
     - user: root
     - group: root
     - mode: 0755
     - source: {{ s.source}}
+    {% endif %}
   {% endfor %}
 {% endif %}
