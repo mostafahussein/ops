@@ -2,7 +2,7 @@
 {{ s }}
 {%- endload -%}
 {%- if clientconf.get('loc') -%}
-  {%- from 'site/config/network.yaml' import ninfo -%}
+  {%- from 'config/network.yaml' import ninfo -%}
   {%- load_yaml as locinfo -%}
     {{ ninfo(clientconf.get('loc')) }}
   {%- endload -%}
