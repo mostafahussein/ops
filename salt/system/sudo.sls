@@ -1,3 +1,5 @@
+{% import_yaml "config/sudo.yaml" as sudo with context %}
+
 /etc/sudoers:
   file.managed:
 {% if grains['os'] == "Gentoo" %}
@@ -9,9 +11,14 @@
     - user: root
     - group: root
 
-/etc/sudoers.d/wheel:
+{% if sudo.files is defined and sudo.files is iterable %}
+  {% for f in sudo.files %}
+/etc/sudoers.d/{{ f.name }}:
   file.managed:
-    - source: salt://common/etc/sudoers.d/wheel
+    - source: {{ f.source }}
     - mode: 440
     - user: root
     - group: root
+    - template: jinja
+  {% endfor %}
+{% endif %}
