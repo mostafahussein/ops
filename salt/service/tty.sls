@@ -1,6 +1,6 @@
-{% import_yaml "config/tty.yaml" as tty with context %}
-
 {% if grains['os'] == "Ubuntu" %}
+
+  {% import_yaml "config/tty.yaml" as tty with context %}
 
   {% for tty in tty.ttys %}
 /etc/init/{{ tty.name }}.conf:
@@ -37,16 +37,19 @@
     - template: jinja
 
 service.{{ tty.name }}:
-  module.run:
+  module.wait:
     - name: service.stop
     {% else %}
   file.absent
 
 service.{{ tty.name }}:
-  module.run:
+  module.wait:
     - name: service.start
     {% endif %}
     - m_name: {{ tty.name }}
+    - watch:
+      - file: /etc/init/{{ tty.name }}.conf
+      - file: /etc/init/{{ tty.name }}.override
   {% endfor %}
 
 {% endif %}
