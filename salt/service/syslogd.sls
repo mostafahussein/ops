@@ -32,3 +32,12 @@ service.rsyslog:
     - user: root
     - group: root
 {% endif %}
+
+/etc/logrotate.conf:
+  file.managed:
+    - source:
+      - salt://etc/logrotate.conf.{{ grains['os'] | lower }}
+      - salt://common/etc/logrotate.conf.{{ grains['os'] | lower }}
+    - mode: 0644
+    - user: root
+    - group: root
