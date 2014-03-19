@@ -23,9 +23,11 @@ service.{{ s.name }}:
       {% elif grains['os'] == "Ubuntu" %}
     - name: /etc/service/{{ s.name }}/run
       {% endif %}
-# module.run:
+# module.wait:
 #   - name: daemontools.missing
 #   - m_name: {{ s.name}}
+#   - watch:
+#     - file:  service.{{ s.name }}
     {% else %}
 service.{{ s.name }}:
   service.running:
