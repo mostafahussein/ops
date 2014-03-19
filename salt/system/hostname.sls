@@ -8,3 +8,8 @@
     - user: root
     - group: root
     - template: jinja
+  module.wait:
+    - name: service.restart
+    - m_name: hostname
+    - watch:
+      - file: /etc/hostname
