@@ -1,3 +1,4 @@
-=www-servers/apache-2.4.6-r2 ~amd64
-=app-admin/apache-tools-2.4.6 ~amd64
+>dev-libs/apr-1.5 ~amd64
+>www-servers/apache-2.4 ~amd64
+>app-admin/apache-tools-2.4 ~amd64
 www-servers/uwsgi ~amd64
