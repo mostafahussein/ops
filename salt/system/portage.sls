@@ -1,7 +1,9 @@
-{% for f in ("make.conf", "local.conf",
-  "package.use/common",
-  "package.keywords/salt",
-  "package.keywords/web-server") %}
+{% if grains['os'] == "Gentoo" %}
+
+  {% for f in ("make.conf", "local.conf",
+    "package.use/common",
+    "package.keywords/salt",
+    "package.keywords/web-server") %}
 /etc/portage/{{ f }}:
   file.managed:
     - source: salt://common/etc/portage/{{ f }}
@@ -9,4 +11,6 @@
     - user: root
     - group: root
     - template: jinja
-{% endfor %}
+  {% endfor %}
+
+{% endif %}
