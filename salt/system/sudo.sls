@@ -2,11 +2,7 @@
 
 /etc/sudoers:
   file.managed:
-{% if grains['os'] == "Gentoo" %}
-    - source: salt://common/etc/sudoers.gentoo
-{% elif grains['os'] == "Ubuntu" %}
-    - source: salt://common/etc/sudoers.ubuntu
-{% endif %}
+    - source: salt://common/etc/sudoers.{{ grains['os'] | lower }}
     - mode: 440
     - user: root
     - group: root
