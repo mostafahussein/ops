@@ -58,3 +58,12 @@ service.nginx:
     - group: root
     - content: {{ r.content }}
 {% endfor %}
+
+{% if grains['os'] == "Gentoo" %}
+/var/log/nginx:
+  file.directory:
+    - user: nginx
+    - group: nginx
+    - mode: 750
+    - makedirs: True
+{% endif %}
