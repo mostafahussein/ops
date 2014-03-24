@@ -17,6 +17,8 @@ service.iptables:
     - source: salt://var/lib/iptables/{{ iptables['iptables_rules'] }}
 {% else %}
     - disabled
+  file.absent:
+    - name: /var/lib/iptables/rules-save
 {% endif %}
 
 {% if iptables.iptables_enabled is defined %}
@@ -52,4 +54,6 @@ service.ipset:
 service.ipset:
   service.disabled:
     - name: ipset
+  file.absent:
+    - name: /var/lib/ipset/rules-save
 {% endif %}
