@@ -20,6 +20,11 @@ service.nginx:
     - mode: 0644
     - user: root
     - group: root
+    - template: jinja
+  {% if f.rlimit_nofile is defined %}
+    - defaults:
+        rlimit_nofile: {{ f.rlimit_nofile }}
+  {% endif %}
 {% endfor %}
 
 {% for g in nginx.get('pam_ldap_config', ()) %}
