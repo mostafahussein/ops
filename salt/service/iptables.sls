@@ -1,27 +1,40 @@
 {% import_yaml "config/iptables.yaml" as iptables with context %}
 
+{% if grains['os'] == "Ubuntu" %}
+/etc/init.d/iptables:
+  file.managed:
+    - mode: 0755
+    - user: root
+    - group: root
+    - source: salt://common/etc/init.d/iptables
+{% endif %}
+
 service.iptables:
   service:
     - name: iptables
-{% if iptables.iptables_enabled is defined %}
+{% if iptables.iptables_enabled is not defined %}
+    - disabled
+  file.absent:
+    - name: /var/lib/iptables/rules-save
+{% else %}
     - enabled
     - reload: True
     - watch:
       - file: service.iptables
   file.managed:
+  {% if grains['os'] == "Gentoo" %}
     - name: /var/lib/iptables/rules-save
+    - source: salt://var/lib/iptables/{{ iptables['iptables_rules'] }}
+  {% elif grains['os'] == "Ubuntu" %}
+    - name: /etc/iptables/rules_iptables
+    - source: salt://etc/iptables/{{ iptables['iptables_rules'] }}
+  {% endif %}
     - mode: 0600
     - user: root
     - group: root
     - template: jinja
-    - source: salt://var/lib/iptables/{{ iptables['iptables_rules'] }}
-{% else %}
-    - disabled
-  file.absent:
-    - name: /var/lib/iptables/rules-save
-{% endif %}
 
-{% if iptables.iptables_enabled is defined %}
+  {% if grains['os'] == "Gentoo" %}
 /etc/conf.d/iptables:
   file.managed:
     - source: salt://common/etc/conf.d/iptables
@@ -29,10 +42,12 @@ service.iptables:
     - user: root
     - group: root
     - template: jinja
+  {% endif %}
 {% endif %}
 
-{% if iptables.ipset_enabled is defined %}
+{% if grains['os'] == "Gentoo" %}
 service.ipset:
+  {% if iptables.ipset_enabled is defined %}
   service.enabled:
     - name: ipset
     - watch:
@@ -50,10 +65,21 @@ service.ipset:
     - mode: 0644
     - user: root
     - group: root
-{% else %}
-service.ipset:
+  {% else %}
   service.disabled:
     - name: ipset
   file.absent:
     - name: /var/lib/ipset/rules-save
+  {% endif %}
+{% elif grains['os'] == "Ubuntu" %}
+/etc/iptables/rules_ipset:
+  {% if iptables.ipset_enabled is defined %}
+  file.managed:
+    - mode: 0600
+    - user: root
+    - group: root
+    - source: salt://etc/iptables/{{ iptables['ipset_rules'] }}
+  {% else %}
+  file.absent
+  {% endif %}
 {% endif %}

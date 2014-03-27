@@ -1,0 +1,86 @@
+#!/bin/bash
+#
+### BEGIN INIT INFO
+# Provides:          iptables
+# Required-Start:    mountkernfs $local_fs
+# Required-Stop:     $local_fs
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Set up iptables rules
+### END INIT INFO
+
+if [[ $(id -u) -ne 0 ]] ; then
+	CMD_IPSET="sudo ipset"
+	CMD_IPTABLES="sudo iptables"
+else
+	CMD_IPSET="ipset"
+	CMD_IPTABLES="iptables"
+fi
+
+ipset_save="/etc/iptables/rules_ipset"
+iptables_save="/etc/iptables/rules_iptables"
+iptables_proc="/proc/net/ip_tables_names"
+
+set_table_policy()
+{
+	local chains table=$1 policy=$2
+	case ${table} in
+		nat)    chains="PREROUTING POSTROUTING OUTPUT";;
+		mangle) chains="PREROUTING INPUT FORWARD OUTPUT POSTROUTING";;
+		filter) chains="INPUT FORWARD OUTPUT";;
+		*)      chains="";;
+	esac
+	local chain
+	for chain in ${chains} ; do
+		${CMD_IPTABLES} -t ${table} -P ${chain} ${policy}
+	done
+}
+
+checkrules()
+{
+	${CMD_IPTABLES}-restore --test < ${iptables_save}
+}
+
+case "$1" in
+start)
+	if [[ -f ${ipset_save} ]] ; then
+		${CMD_IPSET} restore < ${ipset_save}
+	fi
+	checkrules || {
+		echo "!! Not starting iptables"
+		exit 1
+	}
+	if [[ -f ${iptables_save} ]]; then
+		${CMD_IPTABLES}-restore < ${iptables_save}
+	fi
+	;;
+stop)
+	for a in $(cat ${iptables_proc}) ; do
+		set_table_policy $a ACCEPT
+		${CMD_IPTABLES} -F -t $a
+		${CMD_IPTABLES} -X -t $a
+		${CMD_IPTABLES} -Z -t $a
+	done
+	${CMD_IPSET} flush
+	${CMD_IPSET} destroy
+	;;
+restart|reload)
+	$0 stop
+	$0 start || exit 1
+	;;
+status)
+	echo ">> iptables status"
+	for a in $(cat ${iptables_proc}) ; do
+		echo " >> table $a"
+		${CMD_IPTABLES} -t $a -L -nv
+	done
+	echo ">> ipset status"
+	${CMD_IPSET} list
+	;;
+*)
+	echo "Usage: $0 {start|stop|restart|status}" >&2
+	exit 1
+	;;
+esac
+
+exit 0
