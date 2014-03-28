@@ -113,8 +113,8 @@ class ldap_ops:
     def query_users(self, **kwargs):
         args = {
             'basedn': 'user',
-            'filters' : kwargs.get("filters", self.user_filters % '*'),
-            'attrs' : kwargs.get("attrs", None)
+            'filters': kwargs.get("filters", self.user_filters % '*'),
+            'attrs': kwargs.get("attrs", None)
         }
         return self.query(**args)
 
@@ -184,7 +184,8 @@ class ldap_ops:
                 v = [str(v)]
             attrs[k] = v
         for k, v in user_tpl.items():
-            if k in user: continue
+            if k in user:
+                continue
             if not isinstance(v, list):
                 v = [str(v)]
             attrs[k] = v
@@ -221,10 +222,12 @@ class ldap_ops:
             ou = grp[1].get('cn')[0]
             grp_modlist = []
             for uid in groups.get(ou):
-                if uid in grp[1].get('memberUid'): continue
+                if uid in grp[1].get('memberUid'):
+                    continue
                 grp_modlist.append((ldap.MOD_ADD, "memberUid", uid))
             for uid in grp[1].get('memberUid'):
-                if uid in groups.get(ou): continue
+                if uid in groups.get(ou):
+                    continue
                 grp_modlist.append((ldap.MOD_DELETE, "memberUid", uid))
             if grp_modlist:
                 print(" >> Group `%s'" % ou)
