@@ -1,10 +1,12 @@
-{% for f in (
-  "default/rcS",
-  "init/failsafe.conf",
-  "initramfs-tools/initramfs.conf",
-  "initramfs-tools/update-initramfs.conf",
-  "kernel-img.conf",
-  "timezone") %}
+{% if grains['os'] == "Ubuntu" %}
+
+  {% for f in (
+    "default/rcS",
+    "init/failsafe.conf",
+    "initramfs-tools/initramfs.conf",
+    "initramfs-tools/update-initramfs.conf",
+    "kernel-img.conf",
+    "timezone") %}
 /etc/{{ f }}:
   file.managed:
     - source: salt://common/etc/{{ f }}
@@ -12,4 +14,6 @@
     - user: root
     - group: root
     - template: jinja
-{% endfor %}
+  {% endfor %}
+
+{% endif %}

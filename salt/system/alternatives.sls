@@ -1,3 +1,5 @@
+{% if grains['os'] == "Ubuntu" %}
+
 alternative.vi:
   alternatives.set:
     - name: vi
@@ -7,3 +9,5 @@ alternative.awk:
   alternatives.set:
     - name: awk
     - path: /usr/bin/gawk
+
+{% endif %}

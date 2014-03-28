@@ -1,5 +1,7 @@
 {% import_yaml "config/udev.yaml" as udev with context %}
 
+{% if grains['os'] == "Gentoo" %}
+
 service.netmount:
   service.disabled:
     - name: netmount
@@ -9,8 +11,8 @@ eselect.profile:
     - name: profile
     - target: hardened/linux/amd64
 
-{% for f in ("conf.d/hwclock", "env.d/99local", "inittab", "locale.gen",
-  "timezone") %}
+  {% for f in ("conf.d/hwclock", "env.d/99local", "inittab", "locale.gen",
+    "timezone") %}
 /etc/{{ f }}:
   file.managed:
     - source: salt://common/etc/{{ f }}
@@ -18,7 +20,7 @@ eselect.profile:
     - user: root
     - group: root
     - template: jinja
-{% endfor %}
+  {% endfor %}
 
 /etc/securetty:
   file.managed:
@@ -39,11 +41,13 @@ eselect.profile:
   file.absent
 
 /etc/udev/rules.d/80-net-name-slot.rules:
-{% if udev.predictable_nic_name is defined %}
+  {% if udev.predictable_nic_name is defined %}
   file.absent
-{% else %}
+  {% else %}
   file.symlink:
     - user: root
     - group: root
     - target: /dev/null
+  {% endif %}
+
 {% endif %}
