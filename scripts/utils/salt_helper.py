@@ -19,12 +19,16 @@ def salt_diff(cmd):
     content = []
     for host, states in salt_json.items():
         diffs = {}
-        if not isinstance(states, dict):
+        if isinstance(states, list):
+            diffs['salt'] = states[0]
+        elif isinstance(states, unicode):
             diffs['salt'] = states
-        else:
+        elif isinstance(states, dict):
             for module, state in states.items():
                 if not state.get('result'):
                     diffs[module] = state.get('comment')
+        else:
+            raise Exception("Unknown type `%s'" % (type(states),))
         if diffs:
             content.append("> %s" % (host,))
             for k, v in diffs.items():
