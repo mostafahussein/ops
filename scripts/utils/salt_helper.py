@@ -20,7 +20,7 @@ def salt_diff(cmd):
     for host, states in salt_json.items():
         diffs = {}
         if isinstance(states, list):
-            diffs['salt'] = states[0]
+            diffs['salt'] = "\n".join(states)
         elif isinstance(states, unicode):
             diffs['salt'] = states
         elif isinstance(states, dict):
