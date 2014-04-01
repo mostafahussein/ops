@@ -41,7 +41,8 @@ service.rsyncd:
     - content: {{ module.content }}
 {% endfor %}
 
-{% if rsyncd.rsyncd_filters is defined %}
+{% if rsyncd.rsyncd_filters is defined and
+    rsyncd.rsyncd_filters is iterable %}
   {% for f in rsyncd.rsyncd_filters %}
 {{ f.name }}:
   file.managed:
