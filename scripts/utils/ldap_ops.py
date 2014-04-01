@@ -93,6 +93,11 @@ class ldap_ops:
         if not self.krb5_passwd:
             raise LDAPError("** krb5 passwd program not defined")
 
+        krb5_dn = kwargs.get("krb5", "ou=Kerberos")
+        self.basedn["krb5"] = ",".join(("cn=%s" % (self.krb5_realm,),
+                                        krb5_dn,
+                                        self.basedn["root"]))
+
     def __del__(self):
         self.ldapobject.unbind()
 
@@ -117,6 +122,29 @@ class ldap_ops:
             'attrs': kwargs.get("attrs", None)
         }
         return self.query(**args)
+
+    def query_krb5(self, **kwargs):
+        args = {
+            'basedn': kwargs.get("basedn", "krb5"),
+            'filters': kwargs.get("filters"),
+            'attrs': kwargs.get("attrs", None)
+        }
+        return self.query(**args)
+
+    def query_krb5_policy(self, **kwargs):
+        policy_filters = "(objectClass=krbPwdPolicy)"
+        policy_attrs = ["cn", "krbMaxPwdLife"]
+        return self.query_krb5(filters=policy_filters,
+                               attrs=policy_attrs)
+
+    def query_krb5_princ(self, **kwargs):
+        princ_filters = "(objectClass=krbPrincipal)"
+        princ_attrs = ["krbPrincipalName",
+                       "krbLastPwdChange",
+                       "krbPasswordExpiration",
+                       "krbPwdPolicyReference"]
+        return self.query_krb5(filters=princ_filters,
+                               attrs=princ_attrs)
 
     def get_next_uidNumber(self):
         args = {
