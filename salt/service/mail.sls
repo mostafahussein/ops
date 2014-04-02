@@ -35,23 +35,28 @@ service.memcached:
     - sig: "/usr/bin/memcached -d -p 11211"
 
 service.exim:
-  service.disabled
+  service.dead:
+    - enable: False
 
 #todo postfix config
 
 {% else %}
 
 service.postfix:
-  service.disabled
+  service.dead:
+    - enable: False
 
 service.dovecot:
-  service.disabled
+  service.dead:
+    - enable: False
 
 service.imapproxy:
-  service.disabled
+  service.dead:
+    - enable: False
 
 service.spamd:
-  service.disabled
+  service.dead:
+    - enable: False
 
 service.exim:
   service.running:

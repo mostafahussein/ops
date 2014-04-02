@@ -39,7 +39,8 @@ service.keepalived:
   file.absent
   {% endfor %}
 service.keepalived:
-  service.disabled:
+  service.dead:
+    - enable: False
     - name: keepalived
     - sig: /usr/sbin/keepalived
 {% endif %}

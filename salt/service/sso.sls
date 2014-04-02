@@ -107,8 +107,10 @@ service.spawn-fcgi.fcgiwrap:
     - group: root
 {% else %}
 service.kadmind:
-  service.disabled
+  service.dead:
+    - enable: False
 
 service.spawn-fcgi.fcgiwrap:
-  service.disabled
+  service.dead:
+    - enable: False
 {% endif %}

@@ -1,10 +1,11 @@
 service.mcelog:
 {% if grains.get('virtual') != 'physical' or
   grains['cpu_model'].startswith("AMD") %}
-  service.disabled:
+  service.dead:
+    - enable: False
 {% else %}
   service.running:
     - enable: True
-    - sig: /usr/sbin/mcelog
 {% endif %}
+    - sig: /usr/sbin/mcelog
     - name: mcelog

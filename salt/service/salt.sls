@@ -63,6 +63,7 @@ service.salt-master:
     - group: root
   {% endfor %}
 {% else %}
-  service.disabled:
+  service.dead:
+    - enable: False
     - name: salt-master
 {% endif %}
