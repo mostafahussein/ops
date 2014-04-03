@@ -13,3 +13,13 @@
     - m_name: hostname
     - watch:
       - file: /etc/hostname
+
+{% if grains['os'] == "Ubuntu" %}
+/etc/mailname:
+  file.managed:
+    - source: salt://common/etc/mailname
+    - mode: 644
+    - user: root
+    - group: root
+    - template: jinja
+{% endif %}
