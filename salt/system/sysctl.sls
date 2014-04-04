@@ -1,4 +1,5 @@
 {% import_yaml "config/gateway.yaml" as gateway with context %}
+{% import_yaml "config/sysctl.yaml" as sysctl with context %}
 
 service.sysctl:
   file.managed:
@@ -16,6 +17,11 @@ service.sysctl:
     - watch:
       - file: service.sysctl
       - file: /etc/sysctl.d/rp_filter.conf
+{% if sysctl.files is defined and sysctl.files is iterable %}
+  {% for f in sysctl.files %}
+      - file: /etc/sysctl.d/{{ f.name }}
+  {% endfor %}
+{% endif %}
 {% if gateway.is_gateway is defined %}
       - file: /etc/sysctl.d/gw.conf
 
@@ -37,3 +43,15 @@ service.sysctl:
     - user: root
     - group: root
     - template: jinja
+
+{% if sysctl.files is defined and sysctl.files is iterable %}
+  {% for f in sysctl.files %}
+/etc/sysctl.d/{{ f.name }}:
+  file.managed:
+    - source: {{ f.src }}
+    - mode: 644
+    - user: root
+    - group: root
+    - template: jinja
+  {% endfor %}
+{% endif %}
