@@ -12,7 +12,7 @@
 service.iptables:
   service:
     - name: iptables
-{% if iptables.iptables_enabled is not defined %}
+{% if iptables.enabled is not defined %}
     - disabled
   file.absent:
     - name: /var/lib/iptables/rules-save
@@ -24,10 +24,10 @@ service.iptables:
   file.managed:
   {% if grains['os'] == "Gentoo" %}
     - name: /var/lib/iptables/rules-save
-    - source: salt://var/lib/iptables/{{ iptables['iptables_rules'] }}
+    - source: salt://var/lib/iptables/{{ iptables['rules'] }}
   {% elif grains['os'] == "Ubuntu" %}
     - name: /etc/iptables/rules_iptables
-    - source: salt://etc/iptables/{{ iptables['iptables_rules'] }}
+    - source: salt://etc/iptables/{{ iptables['rules'] }}
   {% endif %}
     - mode: 0600
     - user: root
