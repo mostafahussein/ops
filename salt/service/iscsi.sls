@@ -15,6 +15,8 @@ service.multipath-tools:
 {% if iscsi.enabled_multipath is defined %}
   service.running:
     - enable: True
+    - watch:
+      - file: /etc/multipath.conf
 {% else %}
   service.dead:
     - enable: False
@@ -32,7 +34,18 @@ service.multipath-tools:
 kmod.dm_multipath:
   kmod.present:
     - name: dm_multipath
+
+/etc/multipath.conf:
+  file.managed:
+    - user: root
+    - group: root
+    - mode: 644
+    - source: {{ iscsi.multipath_conf }}
+    - template: jinja
 {% else %}
+  file.absent
+
+/etc/multipath.conf:
   file.absent
 
 kmod.dm_multipath:
