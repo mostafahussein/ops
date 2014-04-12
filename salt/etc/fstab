@@ -1,15 +1,11 @@
 {%- import_yaml "config/fstab.yaml" as fstab with context -%}
 {% for e in fstab.get('fstab', ()) -%}
 {% if e.opts == "bind" -%}
-{{ e.fs }}	{{ e.mp }}	none	{{ e.opts }}	0 0
+{{ e.fs }}	{{ e.mp }}	none	{{ e.opts }}{{ e.get('extraopts', '') }}	0 0
 {%- else -%}
-{{ e.fs }}	{{ e.mp }}	{{ e.type }}	{{ e.opts }}	{{ e.dump }} {{ e.pass }}
+{{ e.fs }}	{{ e.mp }}	{{ e.type }}	{{ e.opts }}{{ e.get('extraopts', '') }}	{{ e.dump }} {{ e.pass }}
 {%- endif %}
 {%- if e.get('bind') %}
-{%- if grains['os'] == "Gentoo" %}
-{{ e.mp }}	/mnt/gentoo{{ e.mp }}	none	bind	0 0
-{%- elif grains['os'] == "Ubuntu" %}
-{{ e.mp }}	/mnt/ubuntu{{ e.mp }}	none	bind	0 0
-{%- endif %}
+{{ e.mp }}	/mnt/{{ grains['os'] | lower }}{{ e.mp }}	none	bind{{ e.get('extraopts', '') }}	0 0
 {%- endif %}
 {% endfor %}
