@@ -1,15 +1,43 @@
 {% import_yaml "config/iscsi.yaml" as iscsi with context %}
 
-service.iscsi:
 {% if iscsi.enabled is defined %}
+service.iscsi:
   service.running:
-    - enable: True
-{% else %}
-  service.dead:
-    - enable: False
-{% endif %}
     - sig: /sbin/iscsid
     - name: open-iscsi
+    - enable: True
+
+/etc/init/iscsi-network-interface.override:
+  file.absent
+
+  {% for m in ("up", "down") %}
+/etc/network/if-{{ m }}.d/open-iscsi:
+  file.symlink:
+    - mode: 644
+    - user: root
+    - group: root
+    - target: ../../init.d/open-iscsi
+  {% endfor %}
+{% else %}
+service.iscsi:
+  service.dead:
+    - sig: /sbin/iscsid
+    - name: open-iscsi
+    - enable: False
+
+/etc/init/iscsi-network-interface.override:
+  file.managed:
+    - source: salt://common/etc/init/manual.override
+    - mode: 644
+    - user: root
+    - group: root
+    - template: jinja
+
+  {% for m in ("up", "down") %}
+/etc/network/if-{{ m }}.d/open-iscsi:
+  file.absent
+  {% endfor %}
+{% endif %}
 
 service.multipath-tools:
 {% if iscsi.enabled_multipath is defined %}
