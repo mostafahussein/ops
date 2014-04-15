@@ -15,7 +15,11 @@ service.iptables:
 {% if iptables.enabled is not defined %}
     - disabled
   file.absent:
+  {% if grains['os'] == "Gentoo" %}
     - name: /var/lib/iptables/rules-save
+  {% elif grains['os'] == "Ubuntu" %}
+    - name: /etc/iptables/rules-save
+  {% endif %}
 {% else %}
     - enabled
     - reload: True
