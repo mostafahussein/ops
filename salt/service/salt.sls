@@ -20,7 +20,7 @@ service.salt-minion:
     - enable: True
 {% if grains['os'] == "Gentoo" %}
     - sig: "/usr/lib/python-exec/python2.7/salt-minion --log-level"
-{% elif grains['os'] == "Gentoo" %}
+{% elif grains['os'] == "Ubuntu" %}
     - sig: "su -c salt-minion"
 {% endif %}
     - watch:
@@ -46,7 +46,11 @@ service.salt-master:
   service.running:
     - name: salt-master
     - enable: True
+{% if grains['os'] == "Gentoo" %}
     - sig: "/usr/lib/python-exec/python2.7/salt-master --log-level"
+{% elif grains['os'] == "Ubuntu" %}
+    - sig: "su -c salt-master"
+{% endif %}
     - watch:
   {% for f in master_confs %}
       - file: /etc/salt/master.d/config.conf
