@@ -1,0 +1,126 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import os
+import sys
+import yaml
+import argparse
+import traceback
+
+from datetime import datetime
+from datetime import timedelta
+
+from os import path as osp
+
+conf_dir = osp.join(osp.realpath(__file__), "utils")
+if conf_dir not in sys.path:
+    sys.path.insert(0, conf_dir)
+
+from utils.notify import send_mail
+from utils import ldap_ops as ldap_ops
+
+verbose = False
+domail = False
+
+
+def pass_check():
+    try:
+        if domail:
+            yaml_cfg = 'ldap_cfg.yaml'
+            ldap_cfg = yaml.load(open(yaml_cfg, 'r'))
+            mail_server = ldap_cfg['mail_server']
+            mail_fromaddr = ldap_cfg['mail_fromaddr']
+
+        users = {}
+        policys = {}
+
+        slapd = ldap_ops.ldap_ops()
+
+        for user in slapd.query_users():
+            uid = user[1].get('uid')[0]
+            mail = user[1].get('mail', [""])[0]
+            if mail:
+                users[uid] = mail
+
+        for policy in slapd.query_krb5_policy():
+            krbmaxpwdlife = int(policy[1]['krbMaxPwdLife'][0])
+            policys[policy[0]] = timedelta(seconds=krbmaxpwdlife)
+
+        cst = timedelta(hours=8)
+        today = datetime.today()
+
+        for princ in slapd.query_krb5_princ():
+            if not princ[1].get('krbPwdPolicyReference'):
+                continue
+            uid = princ[1].get('krbPrincipalName')[0].split('@')[0]
+            if '/' in uid:
+                uid = uid.split('/')[0]
+            if princ[1].get('krbPasswordExpiration'):
+                d1 = princ[1]['krbPasswordExpiration'][0]
+                if d1.endswith('Z'):
+                    d1 = d1[:-1]
+                d1 = datetime.strptime(d1, "%Y%m%d%H%M%S")
+            else:
+                d0 = princ[1]['krbLastPwdChange'][0]
+                if d0.endswith('Z'):
+                    d0 = d0[:-1]
+                d0 = datetime.strptime(d0, "%Y%m%d%H%M%S")
+                d1 = d0 + policys[princ[1]['krbPwdPolicyReference'][0]]
+            d1 = d1 + cst
+            delta = d1 - today
+
+            if delta.days >= 10:
+                continue
+
+            if verbose:
+                print(" >> %s's password %s expired @ '%s'." % (
+                      uid,
+                      "has been" if delta.days < 0 else "will be",
+                      str(d1)))
+            if delta.days < 0:
+                continue
+
+            if not domail:
+                continue
+
+            if not users.get(uid):
+                print(" >> %s's mail not defined" % (uid,))
+                continue
+
+            print users[uid]
+
+            subject = u"[重要] 密码会在 '%s CST' 过期，请及时修改！" % d1
+            toaddr = [users[uid]]
+            content = """
+您的内网密码会在 '%s CST' 过期，请尽快修改！密码修改地址为
+%s 。谢谢！
+
+您的用户名为 “%s”。密码过期之后任然能通过上述页面修改密码。
+"""
+            send_mail(mail_fromaddr, toaddr, subject,
+                      content % (d1, pwchange_url, uid),
+                      host=mail_server, priority=1)
+
+    except ldap_ops.LDAPError as e:
+        print("!! %s" % e)
+
+
+if __name__ == "__main__":
+    try:
+        parser = argparse.ArgumentParser(description='Password Expiration Check')
+        parser.add_argument("-v", "--verbose", help='Verbose output',
+                            default=False, action="store_true")
+        parser.add_argument("--cd", help='cd to work dir', dest='cfgdir')
+        parser.add_argument("--do", help='Send email',
+                            default=False, action="store_true")
+        args = parser.parse_args()
+        verbose = args.verbose
+        domail = args.do
+        if args.cfgdir:
+            if osp.isdir(args.cfgdir):
+                os.chdir(args.cfgdir)
+        pass_check()
+    except SystemExit:
+        pass
+    except:
+        print "Exception:", traceback.format_exc()
