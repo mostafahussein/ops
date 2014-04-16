@@ -1,4 +1,4 @@
-{%- import_yaml "ssh/pubkeys.yaml" as pubkeys -%}
+{%- import_yaml "config/pubkeys.yaml" as pubkeys -%}
 {%- load_yaml as users -%}
 {{ allows }}
 {%- endload -%}
