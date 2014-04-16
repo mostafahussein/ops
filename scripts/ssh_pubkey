@@ -110,7 +110,7 @@ def pubkey_save2ldap(uid=None, infile=None):
             print("%s's pubkey unchanged" % (uid,))
             return
         else:
-            modlist.append((ldap.MOD_MOD, 'sshPublicKey', pubkey))
+            modlist.append((ldap.MOD_REPLACE, 'sshPublicKey', pubkey))
     else:
         modlist.append((ldap.MOD_ADD, 'sshPublicKey', pubkey))
     if 'ldapPublicKey' not in attrs['objectClass']:
