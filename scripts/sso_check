@@ -28,10 +28,14 @@ def pass_check():
         if domail:
             yaml_cfg = 'ldap_cfg.yaml'
             ldap_cfg = yaml.load(open(yaml_cfg, 'r'))
+            mail_usessl = ldap_cfg.get('mail_usessl', False)
             mail_server = ldap_cfg['mail_server']
             mail_fromaddr = ldap_cfg['mail_fromaddr']
+            mail_user = ldap_cfg['mail_user']
+            mail_pass = ldap_cfg['mail_pass']
+            pwchange_url = ldap_cfg['pwchange_url']
 
-        users = {}
+        mails = {}
         policys = {}
 
         slapd = ldap_ops.ldap_ops()
@@ -40,7 +44,7 @@ def pass_check():
             uid = user[1].get('uid')[0]
             mail = user[1].get('mail', [""])[0]
             if mail:
-                users[uid] = mail
+                mails[uid] = mail
 
         for policy in slapd.query_krb5_policy():
             krbmaxpwdlife = int(policy[1]['krbMaxPwdLife'][0])
@@ -83,14 +87,14 @@ def pass_check():
             if not domail:
                 continue
 
-            if not users.get(uid):
+            if not mails.get(uid):
                 print(" >> %s's mail not defined" % (uid,))
                 continue
 
-            print users[uid]
+            print(" >> Notify %s (%s)" % (uid, mails[uid]))
 
             subject = u"[重要] 密码会在 '%s CST' 过期，请及时修改！" % d1
-            toaddr = [users[uid]]
+            toaddr = [mails[uid]]
             content = """
 您的内网密码会在 '%s CST' 过期，请尽快修改！密码修改地址为
 %s 。谢谢！
@@ -99,7 +103,8 @@ def pass_check():
 """
             send_mail(mail_fromaddr, toaddr, subject,
                       content % (d1, pwchange_url, uid),
-                      host=mail_server, priority=1)
+                      host=mail_server, user=mail_user, password=mail_pass,
+                      user_ssl=mail_usessl, priority=1)
 
     except ldap_ops.LDAPError as e:
         print("!! %s" % e)

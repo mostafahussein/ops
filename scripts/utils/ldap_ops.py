@@ -47,6 +47,8 @@ class ldap_ops:
             if bind_dn:
                 bind_pass = ldap_cfg.get("bind_pass")
                 if not bind_pass:
+                    bind_pass = kwargs.get('bind_pass')
+                if not bind_pass:
                     raise LDAPError("** bind dn provided w/o password")
                 bind_dn = ",".join((bind_dn, self.basedn["root"]))
                 if not self.ldapobject.bind_s(bind_dn, bind_pass):
