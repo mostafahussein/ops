@@ -59,6 +59,8 @@ def pass_check():
             uid = princ[1].get('krbPrincipalName')[0].split('@')[0]
             if '/' in uid:
                 uid = uid.split('/')[0]
+            if uid == 'host':
+                continue
             if princ[1].get('krbPasswordExpiration'):
                 d1 = princ[1]['krbPasswordExpiration'][0]
                 if d1.endswith('Z'):
@@ -82,7 +84,11 @@ def pass_check():
                       "has been" if delta.days < 0 else "will be",
                       str(d1)))
             if delta.days < 0:
-                continue
+                if mails.get(uid):
+                    continue
+                else:
+                    print(" ** %s is in leave state, please remove it." %
+                          (uid,))
 
             if not domail:
                 continue
@@ -112,7 +118,7 @@ def pass_check():
 
 if __name__ == "__main__":
     try:
-        parser = argparse.ArgumentParser(description='Password Expiration Check')
+        parser = argparse.ArgumentParser(description='SSO Expiration Check')
         parser.add_argument("-v", "--verbose", help='Verbose output',
                             default=False, action="store_true")
         parser.add_argument("--cd", help='cd to work dir', dest='cfgdir')
