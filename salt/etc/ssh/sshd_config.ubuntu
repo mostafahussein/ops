@@ -87,3 +87,6 @@ Subsystem sftp /usr/lib/openssh/sftp-server
 # and ChallengeResponseAuthentication to 'no'.
 UsePAM yes
 UseDNS no
+{%- if ssh.extras is defined %}
+{{ ssh.extras | join('\n') }}
+{%- endif %}
