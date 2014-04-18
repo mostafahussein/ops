@@ -25,8 +25,12 @@
     - include_empty: {{ f.include_empty | default(False) }}
     - dir_mode: {{ f.dir_mode | default('0755') }}
     - file_mode: {{ f.file_mode | default('0644') }}
+    {% elif f.type == "removed" %}
+  file.absent
     {% endif %}
+    {% if f.type != "removed" %}
     - user: {{ f.user | default('root') }}
     - group: {{ f.group | default('root') }}
+    {% endif %}
   {% endfor %}
 {% endif %}
