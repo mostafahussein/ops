@@ -18,4 +18,13 @@ service.net.{{ i }}:
     - target: net.lo
   {% endfor %}
 
+{% elif grains["os"] == "Ubuntu" %}
+
+/etc/network/interfaces:
+  file.managed:
+    - source: salt://etc/network/interfaces.{{ grains['id'].split(".")[0] }}
+    - mode: 0644
+    - user: root
+    - group: root
+
 {% endif %}
