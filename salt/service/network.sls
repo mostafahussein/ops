@@ -4,10 +4,16 @@
 
 /etc/conf.d/net:
   file.managed:
-    - source: salt://etc/conf.d/net.{{ grains['id'] }}
+    - source:
+  {% if nics is defined and nics.netconf is defined %}
+      - {{ nics.netconf }}
+  {% endif %}
+      - salt://etc/conf.d/net.{{ grains['id'] }}
+      - salt://etc/conf.d/net.{{ grains['id'].split(".")[0] }}
     - mode: 0644
     - user: root
     - group: root
+    - template: jinja
 
   {% for i in nics.get('nics', []) %}
 service.net.{{ i }}:
@@ -22,9 +28,15 @@ service.net.{{ i }}:
 
 /etc/network/interfaces:
   file.managed:
-    - source: salt://etc/network/interfaces.{{ grains['id'].split(".")[0] }}
+    - source:
+  {% if nics is defined and nics.netconf is defined %}
+      - {{ nics.netconf }}
+  {% endif %}
+      - salt://etc/network/interfaces.{{ grains['id'] }}
+      - salt://etc/network/interfaces.{{ grains['id'].split(".")[0] }}
     - mode: 0644
     - user: root
     - group: root
+    - template: jinja
 
 {% endif %}
