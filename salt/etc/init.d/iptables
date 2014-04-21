@@ -61,8 +61,10 @@ stop)
 		${CMD_IPTABLES} -X -t $a
 		${CMD_IPTABLES} -Z -t $a
 	done
-	${CMD_IPSET} flush
-	${CMD_IPSET} destroy
+	if [[ -f ${ipset_save} ]] ; then
+		${CMD_IPSET} flush
+		${CMD_IPSET} destroy
+	fi
 	;;
 restart|reload)
 	$0 stop
