@@ -7,6 +7,7 @@
     - user: root
     - group: root
     - mode: 0644
+    - template: jinja
 
   {% if apt.sources is defined and
     apt.sources is iterable %}
@@ -17,6 +18,7 @@
     - user: root
     - group: root
     - mode: 0644
+    - template: jinja
     {% endfor %}
   {% endif %}
 {% endif %}
