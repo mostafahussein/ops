@@ -39,7 +39,7 @@ service.salt-minion:
 {% endfor %}
 
 service.salt-master:
-{% if salt.get('is_salt_master') %}
+{% if salt.get('is_master') %}
 
   {% set master_confs = ("config", "files", "pillar") %}
 

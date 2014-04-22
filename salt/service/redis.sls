@@ -55,6 +55,7 @@ service.redis.{{ t.name }}:
     - mode: 644
     - user: root
     - group: root
+    - template: jinja
 
   {% if grains['os'] == "Gentoo" %}
 /etc/conf.d/redis.{{ t.name }}:
