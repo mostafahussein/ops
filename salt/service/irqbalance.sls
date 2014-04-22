@@ -23,4 +23,14 @@ service.irqbalance:
     - m_name: irqbalance
     - watch:
       - file: service.irqbalance
+
+  {% if irqbalance.enabled is defined %}
+/etc/default/irqbalance:
+  file.managed:
+    - source: salt://common/etc/default/irqbalance
+    - mode: 644
+    - user: root
+    - group: root
+    - template: jinja
+  {% endif %}
 {% endif %}
