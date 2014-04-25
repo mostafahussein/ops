@@ -12,11 +12,11 @@ service.svscan:
 
 {% if svscan.services is defined %}
   {% for s in svscan.get('services', ()) %}
-    {% if s.removed is defined %}
 service.{{ s.name }}:
+    {% if s.removed is defined %}
   service.dead:
     - provider: daemontools
-    - name: {{ s.name}}
+    - name: {{ s.name }}
   file.absent:
       {% if grains['os'] == "Gentoo" %}
     - name: /service/{{ s.name }}/run
@@ -25,20 +25,24 @@ service.{{ s.name }}:
       {% endif %}
 # module.wait:
 #   - name: daemontools.missing
-#   - m_name: {{ s.name}}
+#   - m_name: {{ s.name }}
 #   - watch:
 #     - file:  service.{{ s.name }}
     {% else %}
-service.{{ s.name }}:
   service.running:
       {% if s.sig is defined %}
-    - sig: {{ s.sig}}
+    - sig: {{ s.sig }}
       {% endif %}
     - available: True
     - provider: daemontools
-    - name: {{ s.name}}
+    - name: {{ s.name }}
     - watch:
       - file: service.{{ s.name }}
+      {% if s.sources is defined and s.sources is iterable %}
+        {% for sc in s.sources %}
+      - file: {{ sc.name }}
+        {% endfor %}
+      {% endif %}
   file.managed:
       {% if grains['os'] == "Gentoo" %}
     - name: /service/{{ s.name }}/run
@@ -48,7 +52,24 @@ service.{{ s.name }}:
     - user: root
     - group: root
     - mode: 0755
-    - source: {{ s.source}}
+    - source: {{ s.source_run }}
     {% endif %}
+
+    {% if s.sources is defined and s.sources is iterable %}
+      {% for sc in s.sources %}
+{{ sc.name }}:
+        {% if s.removed is defined %}
+  file.absent
+        {% else %}
+  file.managed:
+    - user: {{ sc.user | default("root") }}
+    - group: {{ sc.group | default("root") }}
+    - mode: {{ sc.mode | default("0644") }}
+    - template: jinja
+    - source: {{ sc.source }}
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+
   {% endfor %}
 {% endif %}
