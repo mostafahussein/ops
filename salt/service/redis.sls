@@ -25,19 +25,35 @@
 {% endif %}
 
 {% for t in redis.get('redis_srvs', ()) %}
+  {% if t.removed is defined %}
+service.redis.{{ t.name }}:
+  service.dead:
+    - name: redis.{{ t.name }}
+    - enable: False
+  file.absent:
+    - name:  /etc/init.d/redis.{{ t.name }}
+
+/etc/redis/{{ t.name }}.conf:
+  file.absent
+
+    {% if grains['os'] == "Gentoo" %}
+/etc/conf.d/redis.{{ t.name }}:
+  file.absent
+    {% endif %}
+  {% else %}
 service.redis.{{ t.name }}:
   service.running:
     - name: redis.{{ t.name }}
     - enable: True
-  {% if grains['os'] == "Gentoo" %}
+    {% if grains['os'] == "Gentoo" %}
     - sig: "/usr/sbin/redis-server /etc/redis/{{ t.name }}.conf"
-  {% elif grains['os'] == "Ubuntu" %}
+    {% elif grains['os'] == "Ubuntu" %}
     - sig: "/usr/bin/redis-server /etc/redis/{{ t.name }}.conf"
-  {% endif %}
+    {% endif %}
     - watch:
-  {% for f in redis.get('redis_common', ()) %}
+    {% for f in redis.get('redis_common', ()) %}
       - file: /etc/redis/{{ f }}
-  {% endfor %}
+    {% endfor %}
       - file: /etc/redis/{{ t.name }}.conf
   file.symlink:
     - name: /etc/init.d/redis.{{ t.name }}
@@ -47,17 +63,17 @@ service.redis.{{ t.name }}:
 
 /etc/redis/{{ t.name }}.conf:
   file.managed:
-  {% if t.conf is defined %}
+    {% if t.conf is defined %}
     - source: salt://etc/redis/{{ t.conf }}
-  {% else %}
+    {% else %}
     - source: salt://etc/redis/{{ t.name }}.conf
-  {% endif %}
+    {% endif %}
     - mode: 644
     - user: root
     - group: root
     - template: jinja
 
-  {% if grains['os'] == "Gentoo" %}
+    {% if grains['os'] == "Gentoo" %}
 /etc/conf.d/redis.{{ t.name }}:
   file.managed:
     - source: salt://etc/conf.d/redis.svc
@@ -69,5 +85,6 @@ service.redis.{{ t.name }}:
         redis_name: {{ t.name }}
         redis_dir: {{ t.dir }}
         redis_group: {{ t.group | default('redis') }}
+    {% endif %}
   {% endif %}
 {% endfor %}
