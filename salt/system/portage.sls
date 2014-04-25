@@ -2,6 +2,7 @@
 
   {% for f in ("make.conf", "local.conf",
     "package.use/common",
+    "package.keywords/redis",
     "package.keywords/salt",
     "package.keywords/web-server") %}
 /etc/portage/{{ f }}:
