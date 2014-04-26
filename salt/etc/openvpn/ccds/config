@@ -7,13 +7,19 @@
     {{ ninfo(clientconf.get('loc')) }}
   {%- endload -%}
 {%- endif -%}
-ifconfig-push {{ clientconf.ip }}
+{% if proto == "udp" -%}
+ifconfig-push {{ clientconf.udp }}
+{%- elif proto == "tcp" -%}
+ifconfig-push {{ clientconf.tcp }}
+{%- endif %}
 {% if clientconf.get('loc') %}{% for i in locinfo.get('iroute_v4') -%}
 iroute {{ i }}
 {% endfor %}{% endif -%}
-{% if clientconf.ipv6 is defined -%}
-ifconfig-ipv6-push {{ clientconf.ipv6 }}
-{% endif -%}
+{% if proto == "udp" and clientconf.udpv6 is defined -%}
+ifconfig-ipv6-push {{ clientconf.udpv6 }}
+{%- elif proto == "tcp" and clientconf.tcpv6 is defined -%}
+ifconfig-ipv6-push {{ clientconf.tcpv6 }}
+{%- endif %}
 {% if clientconf.get('loc') %}{% for i in locinfo.get('localnet_v6') -%}
 iroute-ipv6 {{ i }}
 {% endfor %}{% endif -%}

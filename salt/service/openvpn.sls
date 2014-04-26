@@ -91,12 +91,20 @@ service.{{ f.name }}:
     - template: jinja
   {% elif f.type == "list" %}
     {% import_yaml f.name as ccds with context -%}
+    {% for d in ccds.ccd_dirs %}
+{{ d.dir }}:
+  file.directory:
+    - user: openvpn
+    - group: openvpn
+    - mode: 0700
+    {% endfor %}
     {% if ccds.configs is defined %}
       {% for c in ccds.configs %}
-{{ ccds.ccd_dir }}/{{ c.name }}:
-        {% if c.get('disabled') %}
+        {% for d in ccds.ccd_dirs %}
+{{ d.dir }}/{{ c.name }}:
+          {% if c.get('disabled') %}
   file.absent
-        {% else %}
+          {% else %}
   file.managed:
     - source: salt://common/etc/openvpn/ccds/config
     - user: openvpn
@@ -105,7 +113,9 @@ service.{{ f.name }}:
     - template: jinja
     - defaults:
         s: {{ c.attrs }}
-        {% endif %}
+        proto: {{ d.proto }}
+          {% endif %}
+        {% endfor %}
       {% endfor %}
     {% endif %}
   {% endif %}
