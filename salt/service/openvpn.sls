@@ -112,6 +112,7 @@ service.{{ f.name }}:
     - mode: 0400
     - template: jinja
     - defaults:
+        loc: {{ c.name }}
         s: {{ c.attrs }}
         proto: {{ d.proto }}
           {% endif %}
