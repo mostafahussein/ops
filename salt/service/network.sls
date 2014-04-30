@@ -1,6 +1,6 @@
-{% if grains['os'] == "Gentoo" %}
+{% import_yaml "config/nics.yaml" as nics with context %}
 
-  {% import_yaml "config/nics.yaml" as nics with context %}
+{% if grains['os'] == "Gentoo" %}
 
 /etc/conf.d/net:
   file.managed:
