@@ -15,6 +15,7 @@ service.sysctl:
     - name: procps
 {% endif %}
     - watch:
+      - file: /etc/sysctl.conf
       - file: service.sysctl
 
 {% if sysctl.settings is defined and sysctl.settings is iterable %}
@@ -25,3 +26,10 @@ service.sysctl:
     - config: /etc/sysctl.d/default.conf
   {% endfor %}
 {% endif %}
+
+/etc/sysctl.conf:
+  file.managed:
+    - mode: 644
+    - user: root
+    - group: root
+    - source: salt://common/etc/sysctl.conf.{{ grains['os'] | lower }}
