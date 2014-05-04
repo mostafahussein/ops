@@ -1,4 +1,3 @@
-{% import_yaml "config/gateway.yaml" as gateway with context %}
 {% import_yaml "config/sysctl.yaml" as sysctl with context %}
 
 service.sysctl:
@@ -8,6 +7,7 @@ service.sysctl:
     - mode: 644
     - user: root
     - group: root
+    - template: jinja
   service.enabled:
 {% if grains['os'] == "Gentoo" %}
     - name: sysctl
@@ -16,42 +16,12 @@ service.sysctl:
 {% endif %}
     - watch:
       - file: service.sysctl
-      - file: /etc/sysctl.d/rp_filter.conf
-{% if sysctl.files is defined and sysctl.files is iterable %}
-  {% for f in sysctl.files %}
-      - file: /etc/sysctl.d/{{ f.name }}
-  {% endfor %}
-{% endif %}
-{% if gateway.is_gateway is defined %}
-      - file: /etc/sysctl.d/gw.conf
 
-/etc/sysctl.d/gw.conf:
-  file.managed:
-    - source: salt://common/etc/sysctl.d/gw.conf
-    - mode: 644
-    - user: root
-    - group: root
-{% else %}
-/etc/sysctl.d/gw.conf:
-  file.absent
-{% endif %}
-
-/etc/sysctl.d/rp_filter.conf:
-  file.managed:
-    - source: salt://common/etc/sysctl.d/rp_filter.conf
-    - mode: 644
-    - user: root
-    - group: root
-    - template: jinja
-
-{% if sysctl.files is defined and sysctl.files is iterable %}
-  {% for f in sysctl.files %}
-/etc/sysctl.d/{{ f.name }}:
-  file.managed:
-    - source: {{ f.src }}
-    - mode: 644
-    - user: root
-    - group: root
-    - template: jinja
+{% if sysctl.settings is defined and sysctl.settings is iterable %}
+  {% for setting in sysctl.settings %}
+{{ setting.name }}:
+  sysctl.present:
+    - value: {{ setting.value }}
+    - config: /etc/sysctl.d/default.conf
   {% endfor %}
 {% endif %}
