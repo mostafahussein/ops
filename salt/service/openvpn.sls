@@ -1,3 +1,4 @@
+{% import_yaml "common/config/packages.yaml" as pkgs with context %}
 {% import_yaml "config/openvpn.yaml" as openvpn with context %}
 
 pkg.openvpn:

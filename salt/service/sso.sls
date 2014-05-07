@@ -106,7 +106,7 @@ service.kadmind:
 
 service.spawn-fcgi.fcgiwrap:
   pkg.installed:
-    - name: {{ pkgs.spawn-fcgi | default('spawn-fcgi') }}
+    - name: {{ pkgs.spawn_fcgi | default('spawn-fcgi') }}
     - refresh: False
   service.running:
     - name: spawn-fcgi.fcgiwrap

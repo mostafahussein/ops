@@ -33,7 +33,7 @@ saslauthd: dev-libs/cyrus-sasl
 slapd: net-nds/openldap
 snmpd: net-analyzer/net-snmp
 spamd: mail-filter/spamassassin
-spawn-fcgi: www-servers/spawn-fcgi
+spawn_fcgi: www-servers/spawn-fcgi
 sshd: net-misc/openssh
 svscan: sys-process/daemontools
 tftpd: net-ftp/tftp-hpa
