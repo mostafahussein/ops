@@ -1,4 +1,9 @@
+{% import_yaml "common/config/packages.yaml" as pkgs with context %}
+
 service.snmpd:
+  pkg.installed:
+    - name: {{ pkgs.snmpd | default('snmpd') }}
+    - refresh: False
   file.managed:
     - name: /etc/snmp/snmpd.conf
     - source: salt://etc/snmp/snmpd.conf

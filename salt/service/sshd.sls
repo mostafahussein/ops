@@ -1,4 +1,9 @@
+{% import_yaml "common/config/packages.yaml" as pkgs with context %}
+
 service.sshd:
+  pkg.installed:
+    - name: {{ pkgs.sshd }}
+    - refresh: False
   service.running:
 {% if grains['os'] == "Gentoo" %}
     - name: sshd

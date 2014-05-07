@@ -1,5 +1,9 @@
+{% import_yaml "common/config/packages.yaml" as pkgs with context %}
 {% import_yaml "config/named.yaml" as named with context %}
 service.named:
+  pkg.installed:
+    - name: {{ pkgs.named }}
+    - refresh: False
   service.running:
     - name: named
     - enable: True

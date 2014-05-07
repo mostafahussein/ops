@@ -1,4 +1,10 @@
+{% import_yaml "common/config/packages.yaml" as pkgs with context %}
 {% import_yaml "config/mongodb.yaml" as mongodb with context %}
+
+pkg.mongodb:
+  pkg.installed:
+    - name: {{ pkgs.mongodb | default('mongodb') }}
+    - refresh: False
 
 {% for t in mongodb.get('mongodb_srvs', ()) %}
 service.mongodb.{{ t.name }}:

@@ -1,4 +1,9 @@
+{% import_yaml "common/config/packages.yaml" as pkgs with context %}
+
 service.php-fpm:
+  pkg.installed:
+    - name: {{ pkgs.php | default('php') }}
+    - refresh: False
   service.running:
     - name: php-fpm
     - enable: True

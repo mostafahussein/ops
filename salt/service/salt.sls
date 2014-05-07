@@ -1,3 +1,4 @@
+{% import_yaml "common/config/packages.yaml" as pkgs with context %}
 {% import_yaml "config/salt.yaml" as salt with context %}
 
 /etc/salt/grains:
@@ -10,8 +11,22 @@
 
 {% if grains['os'] == "Gentoo" %}
 {% set minion_confs = ("aliases", "config", "master", "output") %}
+pkg.salt:
+  pkg.installed:
+    - name: {{ pkgs.salt }}
+    - refresh: False
 {% else %}
 {% set minion_confs = ("config", "master", "output") %}
+pkg.salt-minion:
+  pkg.installed:
+    - name: salt-minion
+    - refresh: False
+  {% if salt.get('is_master') %}
+pkg.salt-master:
+  pkg.installed:
+    - name: salt-master
+    - refresh: False
+  {% endif %}
 {% endif %}
 
 service.salt-minion:

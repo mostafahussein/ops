@@ -1,6 +1,10 @@
+{% import_yaml "common/config/packages.yaml" as pkgs with context %}
 {% import_yaml "config/svscan.yaml" as svscan with context %}
 
 service.svscan:
+  pkg.installed:
+    - name: {{ pkgs.svscan }}
+    - refresh: False
   service.running:
     - name: svscan
     - enable: True

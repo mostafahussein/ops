@@ -2,6 +2,9 @@
 
 {% if iscsi.enabled is defined %}
 service.iscsi:
+  pkg.installed:
+    - name: open-iscsi
+    - refresh: False
   service.running:
     - sig: /sbin/iscsid
     - name: open-iscsi
@@ -41,6 +44,9 @@ service.iscsi:
 
 service.multipath-tools:
 {% if iscsi.enabled_multipath is defined %}
+  pkg.installed:
+    - name: multipath-tools
+    - refresh: False
   service.running:
     - enable: True
     - watch:

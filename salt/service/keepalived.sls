@@ -1,3 +1,5 @@
+{% import_yaml "common/config/packages.yaml" as pkgs with context %}
+
 {% set idname = grains['id'].split(".")[0] %}
 
 {% if pillar.get('keepalived_enabled') %}
@@ -19,6 +21,9 @@
   {% endfor %}
 
 service.keepalived:
+  pkg.installed:
+    - name: {{ pkgs.keepalived | default('keepalived') }}
+    - refresh: False
   service.running:
     - name: keepalived
     - enable: True

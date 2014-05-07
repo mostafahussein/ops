@@ -1,0 +1,45 @@
+{% if grains['os'] == "Gentoo" %}
+acpid: sys-power/acpid
+apache: www-servers/apache
+atop: sys-process/atop
+cron: sys-process/cronie
+dhcpd: net-misc/dhcp
+dovecot: net-mail/dovecot
+exim: mail-mta/exim
+imapproxy: net-mail/up-imapproxy
+ipset: net-firewall/ipset
+iptables: net-firewall/iptables
+irqbalance: sys-apps/irqbalance
+keepalived: sys-cluster/keepalived
+kerberos: app-crypt/mit-krb5
+mcelog: app-admin/mcelog
+memcached: net-misc/memcached
+mongodb: dev-db/mongodb
+mysql: dev-db/mysql
+nagios: net-analyzer/nagios
+named: net-dns/bind
+nginx: www-servers/nginx
+ntp: net-misc/ntp
+openvpn: net-misc/openvpn
+php: dev-lang/php
+postfix: mail-mta/postfix
+redis: dev-db/redis
+redmine: www-apps/redmine
+rsync: net-misc/rsync
+rsyslog: app-admin/rsyslog
+salt: app-admin/salt
+samba: net-fs/samba
+saslauthd: dev-libs/cyrus-sasl
+slapd: net-nds/openldap
+snmpd: net-analyzer/net-snmp
+spamd: mail-filter/spamassassin
+spawn-fcgi: www-servers/spawn-fcgi
+sshd: net-misc/openssh
+svscan: sys-process/daemontools
+tftpd: net-ftp/tftp-hpa
+uwsgi: www-servers/uwsgi
+{% elif grains['os'] == "Ubuntu" %}
+sshd: openssh-server
+svscan: daemontools-run
+tftpd: tftpd-hpa
+{% endif %}

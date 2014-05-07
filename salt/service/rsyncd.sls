@@ -1,3 +1,4 @@
+{% import_yaml "common/config/packages.yaml" as pkgs with context %}
 {% import_yaml "config/rsyncd.yaml" as rsyncd with context %}
 
 {% if grains['os'] == "Ubuntu" %}
@@ -10,6 +11,9 @@
 {% endif %}
 
 service.rsyncd:
+  pkg.installed:
+    - name: {{ pkgs.rsync | default('rsync') }}
+    - refresh: False
   service.running:
 {% if grains['os'] == "Gentoo" %}
     - name: rsyncd

@@ -1,4 +1,10 @@
+{% import_yaml "common/config/packages.yaml" as pkgs with context %}
 {% import_yaml "config/redis.yaml" as redis with context %}
+
+pkg.redis:
+  pkg.installed:
+    - name: {{ pkgs.redis | default('redis-server') }}
+    - refresh: False
 
 /etc/init.d/redis.svc:
 {% if redis.get('redis_srvs') %}

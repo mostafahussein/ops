@@ -1,5 +1,10 @@
 {% import_yaml "config/openvpn.yaml" as openvpn with context %}
 
+pkg.openvpn:
+  pkg.installed:
+    - name: {{ pkgs.openvpn | default('openvpn') }}
+    - refresh: False
+
 /etc/openvpn:
   file.recurse:
     - source: salt://etc/openvpn/common

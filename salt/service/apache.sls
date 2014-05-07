@@ -1,6 +1,10 @@
+{% import_yaml "common/config/packages.yaml" as pkgs with context %}
 {% import_yaml "config/apache.yaml" as apache with context %}
 
 service.apache2:
+  pkg.installed:
+    - name: {{ pkgs.apache }}
+    - refresh: False
   service.running:
     - name: apache2
     - enable: True

@@ -1,6 +1,10 @@
+{% import_yaml "common/config/packages.yaml" as pkgs with context %}
 {% import_yaml "config/ntp.yaml" as ntp with context %}
 
 service.ntpd:
+  pkg.installed:
+    - name: {{ pkgs.ntp | default('ntp') }}
+    - refresh: False
   service.running:
 {% if grains['os'] == "Gentoo" %}
     - name: ntpd

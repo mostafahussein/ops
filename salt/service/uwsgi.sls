@@ -1,6 +1,12 @@
+{% import_yaml "common/config/packages.yaml" as pkgs with context %}
 {% import_yaml "config/uwsgi.yaml" as uwsgi with context %}
 
 {% if uwsgi.uwsgi_apps is defined %}
+pkg.uwsgi:
+  pkg.installed:
+    - name: {{ pkgs.uwsgi | default('uwsgi') }}
+    - refresh: False
+
   {% for s in uwsgi.get('uwsgi_apps', ()) %}
 service.uwsgi.{{ s.name }}:
   service.running:

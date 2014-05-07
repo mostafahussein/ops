@@ -1,7 +1,11 @@
+{% import_yaml "common/config/packages.yaml" as pkgs with context %}
 {% import_yaml "config/samba.yaml" as samba with context %}
 
 {% if samba.get('samba_enabled') %}
 service.samba:
+  pkg.installed:
+    - name: {{ pkgs.samba | default('samba') }}
+    - refresh: False
   service.running:
     - name: samba
     - enable: True

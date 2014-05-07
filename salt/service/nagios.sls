@@ -1,4 +1,9 @@
+{% import_yaml "common/config/packages.yaml" as pkgs with context %}
+
 service.nagios:
+  pkg.installed:
+    - name: {{ pkgs.nagios | default('nagios') }}
+    - refresh: False
   service.running:
     - name: nagios
     - enable: True

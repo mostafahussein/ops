@@ -1,6 +1,11 @@
+{% import_yaml "common/config/packages.yaml" as pkgs with context %}
+
 {% if grains['os'] == "Ubuntu" %}
 {% import_yaml "config/irqbalance.yaml" as irqbalance with context %}
 service.irqbalance:
+  pkg.installed:
+    - name: {{ pkgs.irqbalance | default('irqbalance') }}
+    - refresh: False
   {% if irqbalance.enabled is defined %}
   file.absent:
     - name: /etc/init/irqbalance.override

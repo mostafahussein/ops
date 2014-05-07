@@ -1,8 +1,12 @@
+{% import_yaml "common/config/packages.yaml" as pkgs with context %}
 {% import_yaml "config/ldap.yaml" as ldap with context %}
 {% import_yaml "config/kerberos.yaml" as krb with context %}
 {% import_yaml "config/nginx.yaml" as nginx with context %}
 
 service.nginx:
+  pkg.installed:
+    - name: {{ pkgs.nginx | default('nginx') }}
+    - refresh: False
   service.running:
     - name: nginx
     - enable: True

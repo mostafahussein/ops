@@ -1,6 +1,17 @@
+{% import_yaml "common/config/packages.yaml" as pkgs with context %}
 {% import_yaml "config/syslogd.yaml" as syslogd with context %}
 
+{% if grains['os'] == "Ubuntu" %}
+pkg.rsyslog-relp:
+  pkg.installed:
+    - name: rsyslog-relp
+    - refresh: False
+{% endif %}
+
 service.rsyslog:
+  pkg.installed:
+    - name: {{ pkgs.rsyslog | default('rsyslog') }}
+    - refresh: False
   service.running:
     - name: rsyslog
     - enable: True

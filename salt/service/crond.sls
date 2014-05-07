@@ -1,6 +1,10 @@
+{% import_yaml "common/config/packages.yaml" as pkgs with context %}
 {% import_yaml "config/crond.yaml" as crond with context %}
 
 service.crond:
+  pkg.installed:
+    - name: {{ pkgs.cron | default('cron') }}
+    - refresh: False
   service.running:
     - enable: True
 {% if grains['os'] == "Gentoo" %}

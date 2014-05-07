@@ -1,4 +1,9 @@
+{% import_yaml "common/config/packages.yaml" as pkgs with context %}
+
 service.mysqld:
+  pkg.installed:
+    - name: {{ pkgs.mysql | default('mysql') }}
+    - refresh: False
   service.running:
     - name: mysqld
     - enable: True

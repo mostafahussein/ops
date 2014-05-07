@@ -1,3 +1,4 @@
+{% import_yaml "common/config/packages.yaml" as pkgs with context %}
 {% import_yaml "config/iptables.yaml" as iptables with context %}
 
 {% if grains['os'] == "Ubuntu" %}
@@ -10,6 +11,9 @@
 {% endif %}
 
 service.iptables:
+  pkg.installed:
+    - name: {{ pkgs.iptables | default('iptables') }}
+    - refresh: False
   service:
     - name: iptables
 {% if iptables.enabled is not defined %}
@@ -49,8 +53,11 @@ service.iptables:
   {% endif %}
 {% endif %}
 
-{% if grains['os'] == "Gentoo" %}
 service.ipset:
+  pkg.installed:
+    - name: {{ pkgs.ipset | default('ipset') }}
+    - refresh: False
+{% if grains['os'] == "Gentoo" %}
   {% if iptables.ipset_enabled is defined %}
   service.enabled:
     - name: ipset

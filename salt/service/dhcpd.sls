@@ -1,4 +1,9 @@
+{% import_yaml "common/config/packages.yaml" as pkgs with context %}
+
 service.dhcpd:
+  pkg.installed:
+    - name: {{ pkgs.dhcpd }}
+    - refresh: False
   service.running:
     - name: dhcpd
     - enable: True

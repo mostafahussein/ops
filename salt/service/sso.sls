@@ -1,6 +1,12 @@
+{% import_yaml "common/config/packages.yaml" as pkgs with context %}
 {% import_yaml "config/kerberos.yaml" as krb with context %}
 
 # @todo /etc/krb5.INTRA.*, /etc/krb5.keytab, /etc/krb5.ldap
+
+pkg.kerberos:
+  pkg.installed:
+    - name: {{ pkgs.kerberos }}
+    - refresh: False
 
 service.kdcd:
   service.running:
@@ -18,6 +24,9 @@ service.kdcd:
     - template: jinja
 
 service.slapd:
+  pkg.installed:
+    - name: {{ pkgs.slapd | default('slapd') }}
+    - refresh: False
   service.running:
     - name: slapd
     - enable: True
@@ -57,6 +66,9 @@ service.slapd:
     - group: root
 
 service.saslauthd:
+  pkg.installed:
+    - name: {{ pkgs.saslauthd | default('saslauthd') }}
+    - refresh: False
   service.running:
     - name: saslauthd
     - enable: True
@@ -93,6 +105,9 @@ service.kadmind:
     - sig: kadmind
 
 service.spawn-fcgi.fcgiwrap:
+  pkg.installed:
+    - name: {{ pkgs.spawn-fcgi | default('spawn-fcgi') }}
+    - refresh: False
   service.running:
     - name: spawn-fcgi.fcgiwrap
     - enable: True
