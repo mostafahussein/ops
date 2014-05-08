@@ -12,27 +12,6 @@ service.named:
 {% for f in named.get('named_confs', ()) %}
       - file: {{ f.name }}
 {% endfor %}
-{% for f in named.get('named_symlinks', ()) %}
-      - file: {{ f.name }}
-{% endfor %}
-
-{% for f in named.get('named_confs', ()) %}
-{{ f.name }}:
-  file.managed:
-    - source: salt:/{{ f.source | default(f.name) }}
-    - mode: 0640
-    - user: root
-    - group: named
-    - template: jinja
-{% endfor %}
-
-{% for f in named.get('named_symlinks', ()) %}
-{{ f.name }}:
-  file.symlink:
-    - user: root
-    - group: named
-    - target: {{ f.target }}
-{% endfor %}
 
 /etc/conf.d/named:
   file.managed:
@@ -42,17 +21,28 @@ service.named:
     - group: root
     - template: jinja
 
-{% for f in named.get('named_chroots', ()) %}
+{% for f in named.get('named_confs', ()) %}
+  {% if f.op is not defined %}
+    {% set fop = "managed" %}
+  {% else %}
+    {% set fop = f.op %}
+  {% endif %}
 {{ f.name }}:
-  file.{{ f.op }}:
-    - user: {{ f.user }}
-    - group: {{ f.group }}
-  {% if f.op == "symlink" %}
+  file.{{ fop }}:
+    - user: {{ f.user | default('root') }}
+    - group: {{ f.group | default('named') }}
+  {% if fop == "managed" %}
+    - mode: {{ f.mode | default('0640')}}
+    - source: salt:/{{ f.source | default(f.name) }}
+    - template: jinja
+  {% elif fop == "directory" %}
+    - mode: {{ f.mode | default('0751') }}
+  {% elif fop == "symlink" %}
     - target: {{ f.target }}
   {% else %}
     - mode: {{ f.mode }}
   {% endif %}
-  {% if f.op == "mknod" %}
+  {% if fop == "mknod" %}
     - ntype: {{ f.ntype }}
     - major: {{ f.major }}
     - minor: {{ f.minor }}
