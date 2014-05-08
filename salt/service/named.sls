@@ -10,16 +10,16 @@ service.named:
     - sig: "/usr/sbin/named -u named -t /chroot/dns"
     - watch:
 {% for f in named.get('named_confs', ()) %}
-      - file: {{ f }}
+      - file: {{ f.name }}
 {% endfor %}
 {% for f in named.get('named_symlinks', ()) %}
       - file: {{ f.name }}
 {% endfor %}
 
 {% for f in named.get('named_confs', ()) %}
-{{ f }}:
+{{ f.name }}:
   file.managed:
-    - source: salt:/{{ f }}
+    - source: salt:/{{ f.source | default(f.name) }}
     - mode: 0640
     - user: root
     - group: named
