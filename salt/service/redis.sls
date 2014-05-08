@@ -6,6 +6,12 @@ pkg.redis:
     - name: {{ pkgs.redis | default('redis-server') }}
     - refresh: False
 
+/etc/redis:
+  file.directory:
+    - mode: 755
+    - user: root
+    - group: root
+
 /etc/init.d/redis.svc:
 {% if redis.get('redis_srvs') %}
   file.managed:
