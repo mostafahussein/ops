@@ -1,4 +1,13 @@
 {% import_yaml "config/ssh.yaml" as ssh with context %}
+
+{% for f in ssh.get('ssh_dirs') %}
+{{ f.name }}:
+  file.directory:
+    - user: {{ f.user }}
+    - group: {{ f.group }}
+    - mode: 0700
+{% endfor %}
+
 {% for f in ssh.get('ssh_pubkeys') %}
 {{ f.name }}:
   file.managed:
