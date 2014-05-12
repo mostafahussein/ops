@@ -63,10 +63,23 @@ service.redis.{{ t.name }}:
     - sig: "/usr/bin/redis-server /etc/redis/{{ t.name }}.conf"
     {% endif %}
     - watch:
+      - file: service.redis.{{ t.name }}
+      - file: /etc/redis/{{ t.name }}.conf
     {% for f in redis.get('redis_common', ()) %}
       - file: /etc/redis/{{ f }}
     {% endfor %}
+    {% if grains['os'] == "Gentoo" %}
+      - file: /etc/conf.d/redis.{{ t.name }}
+    {% endif %}
+    - require:
+      - file: service.redis.{{ t.name }}
       - file: /etc/redis/{{ t.name }}.conf
+    {% for f in redis.get('redis_common', ()) %}
+      - file: /etc/redis/{{ f }}
+    {% endfor %}
+    {% if grains['os'] == "Gentoo" %}
+      - file: /etc/conf.d/redis.{{ t.name }}
+    {% endif %}
   file.symlink:
     - name: /etc/init.d/redis.{{ t.name }}
     - user: root
