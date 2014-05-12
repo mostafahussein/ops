@@ -1,7 +1,11 @@
 {%- load_yaml as app -%}
 {{ s }}
 {%- endload -%}
+{% if app.attrs.get('socket') -%}
+UWSGI_SOCKET={{ app.attrs.get('socket') }}
+{%- else -%}
 UWSGI_SOCKET=/run/uwsgi_{{ app.name }}/{{ app.name }}.sock
+{%- endif %}
 UWSGI_THREADS={{ app.attrs.get('threads', "") }}
 UWSGI_PROCESSES={{ app.attrs.get('processes', "") }}
 UWSGI_PROGRAM={{ app.attrs.get('program', "") }}
