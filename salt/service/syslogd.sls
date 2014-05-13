@@ -35,7 +35,9 @@ service.rsyslog:
     - template: jinja
 {% endfor %}
 
-{% for f in syslogd.get('logrotate_confs', ()) %}
+{% if syslogd.logrotate_confs is defined and
+      syslogd.logrotate_confs is iterable %}
+  {% for f in syslogd.get('logrotate_confs') %}
 {{ f.name }}:
   file.managed:
     - source: {{ f.source }}
@@ -43,11 +45,12 @@ service.rsyslog:
     - user: root
     - group: root
     - template: jinja
-  {% if f.attrs is defined %}
+    {% if f.attrs is defined %}
     - defaults:
         attrs: {{ f.attrs }}
-  {% endif %}
-{% endfor %}
+    {% endif %}
+  {% endfor %}
+{% endif %}
 
 /etc/logrotate.conf:
   file.managed:
