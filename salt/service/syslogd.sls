@@ -28,7 +28,7 @@ service.rsyslog:
 {% for f in syslogd.get('syslogd_confs', ()) %}
 {{ f.name }}:
   file.managed:
-    - source: {{ f.target }}
+    - source: {{ f.source }}
     - mode: 0644
     - user: root
     - group: root

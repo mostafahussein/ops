@@ -25,8 +25,8 @@ service.apache2:
 {% for f in apache.get('apache_confs', ()) %}
 {{ f.name }}:
   file.managed:
-  {% if f.target is defined %}
-    - source: {{ f.target }}
+  {% if f.source is defined %}
+    - source: {{ f.source }}
   {% else %}
     - source: salt:/{{ f.name }}
   {% endif %}

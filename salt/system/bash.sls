@@ -3,8 +3,8 @@
 {% for f in bash.get('bash_profiles', ()) %}
 /etc/profile.d/{{ f.name }}:
   file.managed:
-{% if f.target is defined %}
-    - source: {{ f.target }}
+{% if f.source is defined %}
+    - source: {{ f.source }}
 {% else %}
     - source: salt://common/etc/profile.d/{{ f.name }}
 {% endif %}
