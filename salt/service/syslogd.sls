@@ -35,14 +35,19 @@ service.rsyslog:
     - template: jinja
 {% endfor %}
 
-{% if syslogd.get('is_syslog_server') %}
-/etc/logrotate.d/local-rsyslog:
+{% for f in syslogd.get('logrotate_confs', ()) %}
+{{ f.name }}:
   file.managed:
-    - source: salt://etc/logrotate.d/rsyslog
+    - source: {{ f.source }}
     - mode: 0644
     - user: root
     - group: root
-{% endif %}
+    - template: jinja
+  {% if f.attrs is defined %}
+    - defaults:
+        attrs: {{ f.attrs }}
+  {% endif %}
+{% endfor %}
 
 /etc/logrotate.conf:
   file.managed:

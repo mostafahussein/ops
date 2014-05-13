@@ -1,0 +1,16 @@
+/home/data/log/*/*log
+{
+	compresscmd /usr/bin/xz
+	uncompresscmd /usr/bin/unxz
+	compressext .xz
+	rotate 240
+	monthly
+	missingok
+	notifempty
+	compress
+	nocreate
+	sharedscripts
+	postrotate
+		kill -HUP $(cat /run/rsyslogd.pid) &>/dev/null || true
+	endscript
+}
