@@ -1,0 +1,20 @@
+# Redis user.
+REDIS_USER="{{ redis_user }}"
+
+# Redis group.
+REDIS_GROUP="{{ redis_group }}"
+
+# Redis configuration file.
+REDIS_CONF="/etc/redis/{{ redis_name }}.conf"
+
+# Redis dump directory.
+REDIS_DIR="{{ redis_dir }}"
+
+# Redis pid file.
+# (Be sure to change the main redis configuration file as well if you change
+# this from the default.)
+REDIS_PID="/run/redis/redis.{{ redis_name }}.pid"
+
+# Redis options.
+# (Redis expects the first argument to be the configuration file.)
+REDIS_OPTS="${REDIS_CONF}"

@@ -3,7 +3,7 @@
 PIDPATH=/run/redis
 PROGNAME=${SVCNAME#*.}
 
-REDIS_PID="${PIDPATH}/${PROGNAME}.pid"
+REDIS_PID="${PIDPATH}/redis.${PROGNAME}.pid"
 REDIS_DIR=${REDIS_DIR:-/var/lib/redis}
 REDIS_CONF=${REDIS_CONF:-/etc/redis.conf}
 REDIS_OPTS=${REDIS_OPTS:-"${REDIS_CONF}"}

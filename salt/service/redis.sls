@@ -88,28 +88,28 @@ service.redis.{{ t.name }}:
 
 /etc/redis/{{ t.name }}.conf:
   file.managed:
-    {% if t.conf is defined %}
-    - source: salt://etc/redis/{{ t.conf }}
-    {% else %}
-    - source: salt://etc/redis/{{ t.name }}.conf
-    {% endif %}
+    - source: salt://common/etc/redis/redis.conf
     - mode: 644
     - user: root
     - group: root
     - template: jinja
+    - defaults:
+        name: {{ t.name }}
+        attrs: {{ t.attrs }}
 
     {% if grains['os'] == "Gentoo" %}
 /etc/conf.d/redis.{{ t.name }}:
   file.managed:
-    - source: salt://etc/conf.d/redis.svc
+    - source: salt://common/etc/conf.d/redis.svc
     - mode: 644
     - user: root
     - group: root
     - template: jinja
     - defaults:
         redis_name: {{ t.name }}
-        redis_dir: {{ t.dir }}
-        redis_group: {{ t.group | default('redis') }}
+        redis_dir: {{ t.attrs.dir }}
+        redis_user: {{ t.attrs.user | default('redis') }}
+        redis_group: {{ t.attrs.group | default('redis') }}
     {% endif %}
   {% endif %}
 {% endfor %}
