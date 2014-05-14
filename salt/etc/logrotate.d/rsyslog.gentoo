@@ -1,4 +1,7 @@
 /var/log/syslog
+{%- if attrs.daily is defined %}
+{{ attrs.daily | join('\n') }}
+{%- endif %}
 {
 	rotate 7
 	daily
@@ -23,8 +26,8 @@
 /var/log/cron.log
 /var/log/debug
 /var/log/messages
-{%- if attrs is defined %}
-{{ attrs | join('\n') }}
+{%- if attrs.weekly is defined %}
+{{ attrs.weekly | join('\n') }}
 {%- endif %}
 {
 	rotate 4
