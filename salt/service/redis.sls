@@ -63,6 +63,7 @@ service.redis.{{ t.name }}:
     - sig: "/usr/bin/redis-server /etc/redis/{{ t.name }}.conf"
     {% endif %}
     - watch:
+      - file: /etc/init.d/redis.svc
       - file: service.redis.{{ t.name }}
       - file: /etc/redis/{{ t.name }}.conf
     {% for f in redis.get('redis_common', ()) %}
@@ -72,6 +73,7 @@ service.redis.{{ t.name }}:
       - file: /etc/conf.d/redis.{{ t.name }}
     {% endif %}
     - require:
+      - file: /etc/init.d/redis.svc
       - file: service.redis.{{ t.name }}
       - file: /etc/redis/{{ t.name }}.conf
     {% for f in redis.get('redis_common', ()) %}
@@ -112,4 +114,13 @@ service.redis.{{ t.name }}:
         redis_group: {{ t.attrs.group | default('redis') }}
     {% endif %}
   {% endif %}
+{% endfor %}
+
+{% for f in redis.get('redis_dirs', ()) %}
+{{ f.name }}:
+  file.directory:
+    - makedirs: True
+    - user: {{ f.user | default('redis') }}
+    - group: {{ f.group | default('redis') }}
+    - mode: {{ f.mode | default('0755') }}
 {% endfor %}
