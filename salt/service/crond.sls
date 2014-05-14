@@ -32,10 +32,14 @@ service.crond:
     crond.crond_files is iterable %}
   {% for f in crond.get("crond_files", ()) %}
 {{ f.name }}:
+    {% if f.removed is defined %}
+  file.absent
+    {% else %}
   file.managed:
     - source: {{ f.source }}
     - user: root
     - group: root
     - mode: 0644
+    {% endif %}
   {% endfor %}
 {% endif %}
