@@ -12,6 +12,7 @@ iptables: net-firewall/iptables
 irqbalance: sys-apps/irqbalance
 keepalived: sys-cluster/keepalived
 kerberos: app-crypt/mit-krb5
+lvm2: sys-fs/lvm2
 mcelog: app-admin/mcelog
 memcached: net-misc/memcached
 mongodb: dev-db/mongodb
