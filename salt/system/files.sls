@@ -12,12 +12,12 @@
     - target: {{ f.target }}
     {% elif f.type == "file" %}
   file.managed:
-    - source: {{ f.src }}
+    - source: {{ f.source }}
     - template: jinja
     - mode: {{ f.mode | default('0644')}}
     {% elif f.type == "recurse" %}
   file.recurse:
-    - source: {{ f.src }}
+    - source: {{ f.source }}
     - clean: {{ f.clean | default(False) }}
       {% if f.exclude is defined %}
     - exclude_pat: "{{ f.exclude }}"
