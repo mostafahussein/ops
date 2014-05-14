@@ -49,14 +49,14 @@ BEGIN {
 END {
     print "==> Connection attempt"
     for (u in inits) {
-        print inits[u], u
+        printf "%5d %s\n", inits[u], u
     }
     print "==> Connection w/ revoked cert"
     for (u in crls) {
-        print crls[u], u
+        printf "%5d %s\n", crls[u], u
     }
-    print "==> User connec statistic"
+    print "==> User connect statistic"
     for (u in users) {
-        print users[u], u
+        printf "%5d %s\n", users[u], u
     }
 }
