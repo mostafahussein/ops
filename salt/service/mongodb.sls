@@ -37,3 +37,12 @@ service.mongodb.{{ t.name }}:
         options: {{ t.options | default('--journal') }}
   {% endif %}
 {% endfor %}
+
+{% for f in mongodb.get('mongodb_dirs', ()) %}
+{{ f.name }}:
+  file.directory:
+    - makedirs: True
+    - user: {{ f.user | default('mongodb') }}
+    - group: {{ f.group | default('mongodb') }}
+    - mode: {{ f.mode | default('0755') }}
+{% endfor %}
