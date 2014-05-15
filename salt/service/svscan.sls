@@ -47,6 +47,7 @@ service.{{ s.name }}:
     - name: {{ s.name }}
     - require:
       - file: service.{{ s.name }}
+      - file: {{ svscan_dir }}/{{ s.name }}/down
     - watch:
       - file: service.{{ s.name }}
         {% if s.sources is defined and s.sources is iterable %}
@@ -63,6 +64,16 @@ service.{{ s.name }}:
     - source: {{ s.source_run }}
     - require:
       - file: {{ svscan_dir }}/{{ s.name }}
+
+{{ svscan_dir }}/{{ s.name }}/down:
+      {% if s.disabled is defined %}
+  file.managed:
+    - user: root
+    - group: root
+    - mode: 0644
+      {% else %}
+  file.absent
+      {% endif %}
 
 {{ svscan_dir }}/{{ s.name }}:
   file.directory:
