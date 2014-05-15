@@ -1,6 +1,12 @@
 {% import_yaml "common/config/packages.yaml" as pkgs with context %}
 {% import_yaml "config/svscan.yaml" as svscan with context %}
 
+{% if grains['os'] == "Gentoo" %}
+{% set svscan_dir = "/service" %}
+{% elif grains['os'] == "Ubuntu" %}
+{% set svscan_dir = "/etc/service" %}
+{% endif %}
+
 service.svscan:
   pkg.installed:
     - name: {{ pkgs.svscan }}
@@ -9,12 +15,12 @@ service.svscan:
     - name: svscan
     - enable: True
 {% if grains['os'] == "Gentoo" %}
-    - sig: "/usr/bin/svscan /service"
+    - sig: "/usr/bin/svscan {{ svscan_dir }}"
 {% elif grains['os'] == "Ubuntu" %}
     - sig: "/bin/sh /usr/bin/svscanboot"
 {% endif %}
 
-{% if svscan.services is defined %}
+{% if svscan.services is defined and svscan.services is iterable %}
   {% for s in svscan.get('services', ()) %}
 service.{{ s.name }}:
     {% if s.removed is defined %}
@@ -22,41 +28,47 @@ service.{{ s.name }}:
     - provider: daemontools
     - name: {{ s.name }}
   file.absent:
-      {% if grains['os'] == "Gentoo" %}
-    - name: /service/{{ s.name }}/run
-      {% elif grains['os'] == "Ubuntu" %}
-    - name: /etc/service/{{ s.name }}/run
-      {% endif %}
-# module.wait:
-#   - name: daemontools.missing
-#   - m_name: {{ s.name }}
-#   - watch:
-#     - file:  service.{{ s.name }}
+    - name: {{ svscan_dir }}/{{ s.name }}/run
+
+{{ svscan_dir }}/{{ s.name }}:
+  file.absent
     {% else %}
+      {% if s.disabled is defined %}
+  service.dead:
+    - provider: daemontools
+    - name: {{ s.name }}
+      {% else %}
   service.running:
-      {% if s.sig is defined %}
+        {% if s.sig is defined %}
     - sig: {{ s.sig }}
-      {% endif %}
+        {% endif %}
     - available: True
     - provider: daemontools
     - name: {{ s.name }}
+    - require:
+      - file: service.{{ s.name }}
     - watch:
       - file: service.{{ s.name }}
-      {% if s.sources is defined and s.sources is iterable %}
-        {% for sc in s.sources %}
+        {% if s.sources is defined and s.sources is iterable %}
+          {% for sc in s.sources %}
       - file: {{ sc.name }}
-        {% endfor %}
+          {% endfor %}
+        {% endif %}
       {% endif %}
   file.managed:
-      {% if grains['os'] == "Gentoo" %}
-    - name: /service/{{ s.name }}/run
-      {% elif grains['os'] == "Ubuntu" %}
-    - name: /etc/service/{{ s.name }}/run
-      {% endif %}
+    - name: {{ svscan_dir }}/{{ s.name }}/run
     - user: root
     - group: root
     - mode: 0755
     - source: {{ s.source_run }}
+    - require:
+      - file: {{ svscan_dir }}/{{ s.name }}
+
+{{ svscan_dir }}/{{ s.name }}:
+  file.directory:
+    - user: root
+    - group: root
+    - mode: 0755
     {% endif %}
 
     {% if s.sources is defined and s.sources is iterable %}
