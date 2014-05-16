@@ -22,6 +22,8 @@ eselect.profile:
     - template: jinja
   {% endfor %}
 
+# watch /etc/inittab
+
 /etc/securetty:
   file.managed:
     - source: salt://common/etc/securetty.gentoo
