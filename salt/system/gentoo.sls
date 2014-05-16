@@ -22,7 +22,11 @@ eselect.profile:
     - template: jinja
   {% endfor %}
 
-# watch /etc/inittab
+telinit q:
+  cmd.wait:
+    - cwd: /
+    - watch:
+      - file: /etc/inittab
 
 /etc/securetty:
   file.managed:
