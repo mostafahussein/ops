@@ -2,10 +2,8 @@
 {{ s }}
 {%- endload -%}
 {%- if loc is defined -%}
-  {%- from 'config/network.yaml' import ninfo -%}
-  {%- load_yaml as locinfo -%}
-    {{ ninfo(loc) }}
-  {%- endload -%}
+  {%- import_yaml 'config/network.yaml' as ninfo with context -%}
+  {%- set locinfo = ninfo.get(loc) -%}
 {%- endif -%}
 {% if proto == "udp" -%}
 ifconfig-push {{ clientconf.udp }}
