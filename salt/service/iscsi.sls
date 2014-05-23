@@ -82,7 +82,7 @@ kmod.dm_multipath:
 /etc/multipath.conf:
   file.absent
 
-kmod.dm_multipath:
-  kmod.absent:
-    - name: dm_multipath
+#kmod.dm_multipath:
+#  kmod.absent:
+#    - name: dm_multipath
 {% endif %}
