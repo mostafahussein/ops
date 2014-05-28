@@ -1,3 +1,5 @@
+{% set idname = grains['id'].split('.')[0] %}
+
 {% import_yaml "common/config/packages.yaml" as pkgs with context %}
 {% import_yaml "config/iptables.yaml" as iptables with context %}
 
@@ -32,10 +34,18 @@ service.iptables:
   file.managed:
   {% if grains['os'] == "Gentoo" %}
     - name: /var/lib/iptables/rules-save
-    - source: salt://var/lib/iptables/{{ iptables['rules'] }}
+    - source:
+      - salt://var/lib/iptables/rules-save.{{ idname }}
+    {% if iptables.rules is defined %}
+      - salt://var/lib/iptables/{{ iptables.rules }}
+    {% endif %}
   {% elif grains['os'] == "Ubuntu" %}
     - name: /etc/iptables/rules_iptables
-    - source: salt://etc/iptables/{{ iptables['rules'] }}
+    - source:
+      - salt://etc/iptables/rules-save.{{ idname }}
+    {% if iptables.rules is defined %}
+      - salt://etc/iptables/{{ iptables.rules }}
+    {% endif %}
   {% endif %}
     - mode: 0600
     - user: root
@@ -68,7 +78,11 @@ service.ipset:
     - mode: 0600
     - user: root
     - group: root
-    - source: salt://var/lib/ipset/{{ iptables['ipset_rules'] }}
+    - source:
+      - salt://var/lib/ipset/rules-save.{{ idname }}
+    {% if iptables.rules is defined %}
+      - salt://var/lib/ipset/{{ iptables.ipset_rules }}
+    {% endif %}
 
 /etc/conf.d/ipset:
   file.managed:
@@ -89,7 +103,11 @@ service.ipset:
     - mode: 0600
     - user: root
     - group: root
-    - source: salt://etc/iptables/{{ iptables['ipset_rules'] }}
+    - source:
+    {% if iptables.rules is defined %}
+      - salt://etc/iptables/{{ iptables.ipset_rules }}
+    {% endif %}
+      - salt://etc/iptables/rules_ipset.{{ idname }}
   {% else %}
   file.absent
   {% endif %}
