@@ -2,12 +2,16 @@
 
 {% set idname = grains['id'].split(".")[0] %}
 
-{% if pillar.get('keepalived_enabled') %}
+{% import_yaml "config/keepalived.yaml" as keepalived with context %}
+
+{% if keepalived.enabled is defined %}
 
   {% for t in ("master", "backup") %}
 /etc/keepalived/{{ t }}.sh:
   file.managed:
-    - source: salt://etc/keepalived/notify.sh
+    - source:
+      - salt:/{{ keepalived.notify }}
+      - salt://etc/keepalived/notify.sh.{{ idname }}
     - mode: 755
     - user: root
     - group: root
@@ -30,7 +34,9 @@ service.keepalived:
     - sig: /usr/sbin/keepalived
   file.managed:
     - name: /etc/keepalived/keepalived.conf
-    - source: salt://etc/keepalived/keepalived.conf
+    - source:
+      - salt:/{{ keepalived.config }}
+      - salt://etc/keepalived/keepalived.conf.{{ idname }}
     - mode: 0400
     - user: root
     - group: root
