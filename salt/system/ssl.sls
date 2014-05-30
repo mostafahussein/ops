@@ -7,5 +7,6 @@
     - mode: 644
     - user: root
     - group: root
+    - makedirs: True
   {% endfor %}
 {% endif %}
