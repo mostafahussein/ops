@@ -1,0 +1,2 @@
+{%- import_yaml "config/cpufrequtils.yaml" as cpufreq with context -%}
+GOVERNOR={{ cpufreq.governor }}

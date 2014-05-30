@@ -2,6 +2,7 @@
 acpid: sys-power/acpid
 apache: www-servers/apache
 atop: sys-process/atop
+cpufrequtils: sys-power/cpufrequtils
 cron: sys-process/cronie
 dhcpd: net-misc/dhcp
 dovecot: net-mail/dovecot
