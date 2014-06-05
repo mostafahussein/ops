@@ -10,13 +10,13 @@
 {%- set type = e.type -%}
 {%- endif %}
 {%- set opts = "%s%s" | format(e.opts, e.get('extraopts', '')) -%}
-{{ e.fs }}	{{ e.mp }}	{{ type }}	{{ opts }}	{{ dump }} {{ pass }}
+{{ e.fs.ljust(36) }} {{ e.mp.ljust(22) }} {{ type.ljust(6) }} {{ opts.ljust(20) }} {{ dump }} {{ pass }}
 {%- if e.get('bind') -%}
 {%- set mp = "/mnt/%s%s" | format(grains['os'] | lower, e.mp) -%}
 {%- set type = "none" -%}
 {%- set opts = "bind" -%}
 {%- set dump = 0 -%}
 {%- set pass = 0 %}
-{{ e.mp }}	{{ mp }}	{{ type }}	{{ opts }}	{{ dump }} {{ pass }}
+{{ e.mp.ljust(36) }} {{ mp.ljust(22) }} {{ type.ljust(6) }} {{ opts.ljust(20) }} {{ dump }} {{ pass }}
 {%- endif %}
 {% endfor %}
