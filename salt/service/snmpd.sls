@@ -27,18 +27,22 @@ service.snmpd:
     - user: root
     - group: root
 
-/etc/default/snmpd:
-  file.absent
-
 {% elif grains['os'] == "Ubuntu" %}
       - file: /etc/default/snmpd
-
-/etc/conf.d/snmpd:
-  file.absent
 
 /etc/default/snmpd:
   file.managed:
     - source: salt://common/etc/default/snmpd
+    - mode: 0644
+    - user: root
+    - group: root
+
+{% elif grains['os'] == "CentOS" %}
+      - file: /etc/sysconfig/snmpd
+
+/etc/sysconfig/snmpd:
+  file.managed:
+    - source: salt://common/etc/sysconfig/snmpd
     - mode: 0644
     - user: root
     - group: root

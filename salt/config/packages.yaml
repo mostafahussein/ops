@@ -44,4 +44,6 @@ uwsgi: www-servers/uwsgi
 sshd: openssh-server
 svscan: daemontools-run
 tftpd: tftpd-hpa
+{% elif grains['os'] == "CentOS" %}
+snmpd: net-snmp
 {% endif %}
