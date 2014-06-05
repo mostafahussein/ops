@@ -41,6 +41,7 @@ svscan: sys-process/daemontools
 tftpd: net-ftp/tftp-hpa
 uwsgi: www-servers/uwsgi
 {% elif grains['os'] == "Ubuntu" %}
+named: bind9
 sshd: openssh-server
 svscan: daemontools-run
 tftpd: tftpd-hpa
