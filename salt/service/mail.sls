@@ -80,28 +80,32 @@ service.exim:
     - refresh: False
   service.running:
     - enable: True
-    - watch:
-      - file: service.exim
 {% if grains['os'] == "Gentoo" %}
     - name: exim
     - sig: "/usr/sbin/exim -C /etc/exim/exim.conf"
-  file.managed:
-    - name: /etc/exim/exim.conf
-    - source: salt://common/etc/exim/exim.conf
-    - mode: 0644
-    - user: root
-    - group: root
-    - template: jinja
 {% elif grains['os'] == "Ubuntu" %}
     - name: exim4
     - sig: "usr/sbin/exim4 -bd -q"
+{% endif %}
+{% if mail.exim_configs is defined %}
+    - watch:
+  {% for f in mail.exim_configs %}
+      - file: {{ f.name }}
+  {% endfor %}
+{% endif %}
+
+{% if mail.exim_configs is defined %}
+  {% for f in mail.exim_configs %}
+{{ f.name }}:
   file.managed:
-    - name: /etc/exim4/update-exim4.conf.conf
-    - source: salt://common/etc/exim/update-exim4.conf.conf
+    - source:
+      - salt:/{{ f.name }}
+      - salt://common{{ f.name }}
     - mode: 0644
     - user: root
     - group: root
     - template: jinja
+  {% endfor %}
 {% endif %}
 
 {% endif %}
