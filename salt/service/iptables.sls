@@ -25,6 +25,8 @@ service.iptables:
     - name: /var/lib/iptables/rules-save
   {% elif grains['os'] == "Ubuntu" %}
     - name: /etc/iptables/rules-save
+  {% elif grains['os'] == "CentOS" %}
+    - name: /etc/sysconfig/iptables
   {% endif %}
 {% else %}
     - enabled
@@ -34,19 +36,16 @@ service.iptables:
   file.managed:
   {% if grains['os'] == "Gentoo" %}
     - name: /var/lib/iptables/rules-save
-    - source:
-      - salt://var/lib/iptables/rules-save.{{ idname }}
-    {% if iptables.rules is defined %}
-      - salt://var/lib/iptables/{{ iptables.rules }}
-    {% endif %}
   {% elif grains['os'] == "Ubuntu" %}
     - name: /etc/iptables/rules_iptables
+  {% elif grains['os'] == "CentOS" %}
+    - name: /etc/sysconfig/iptables
+  {% endif %}
     - source:
       - salt://etc/iptables/rules-save.{{ idname }}
     {% if iptables.rules is defined %}
       - salt://etc/iptables/{{ iptables.rules }}
     {% endif %}
-  {% endif %}
     - mode: 0600
     - user: root
     - group: root
