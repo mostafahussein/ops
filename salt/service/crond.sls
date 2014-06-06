@@ -13,17 +13,14 @@ service.crond:
 {% elif grains['os'] == "Ubuntu" %}
     - name: cron
     - sig: cron
-{% else %}
+{% elif grains['os'] == "CentOS" %}
     - name: crond
+    - sig: crond
 {% endif %}
 
 /etc/crontab:
   file.managed:
-{% if grains['os'] == "Gentoo" %}
-    - source: salt://common/etc/crontab.gentoo
-{% elif grains['os'] == "Ubuntu" %}
-    - source: salt://common/etc/crontab.ubuntu
-{% endif %}
+    - source: salt://common/etc/crontab.{{ grains['os'] | lower }}
     - user: root
     - group: root
     - mode: 0644
