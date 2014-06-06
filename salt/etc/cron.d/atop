@@ -1,2 +1,7 @@
+{%- if grains['os'] == "Gentoo" -%}
 # start atop daily at midnight
 0 0 * * * root /etc/atop/atop.daily
+{%- elif grains['os'] == "CentOS" -%}
+# start atop daily at midnight
+0 0 * * * root /etc/rc.d/init.d/atop condrestart > /dev/null 2>&1 || :
+{%- endif %}
