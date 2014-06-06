@@ -5,14 +5,24 @@ service.named:
     - name: {{ pkgs.named }}
     - refresh: False
   service.running:
+{% if grains['os'] == "Ubuntu" %}
+    - name: bind9
+    - sig: "/usr/sbin/named -u bind"
+{% else %}
     - name: named
-    - enable: True
+  {% if grains['os'] == "Gentoo" %}
     - sig: "/usr/sbin/named -u named -t /chroot/dns"
+  {% elif grains['os'] == "CentOS" %}
+    - sig: "/usr/sbin/named -u named -t /var/named/chroot"
+  {% endif %}
+{% endif %}
+    - enable: True
     - watch:
 {% for f in named.get('named_confs', ()) %}
       - file: {{ f.name }}
 {% endfor %}
 
+{% if grains['os'] == "Gentoo" %}
 /etc/conf.d/named:
   file.managed:
     - source: salt://common/etc/conf.d/named
@@ -20,6 +30,7 @@ service.named:
     - user: root
     - group: root
     - template: jinja
+{% endif %}
 
 {% for f in named.get('named_confs', ()) %}
   {% if f.op is not defined %}
