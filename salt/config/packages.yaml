@@ -44,6 +44,7 @@ uwsgi: www-servers/uwsgi
 {% elif grains['os'] == "Ubuntu" %}
 exim: exim4
 named: bind9
+redis: redis-server
 sshd: openssh-server
 svscan: daemontools-run
 tftpd: tftpd-hpa

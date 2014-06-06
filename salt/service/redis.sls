@@ -4,7 +4,7 @@
 {% if redis.redis_srvs is defined and redis.get('redis_srvs', ()) %}
 pkg.redis:
   pkg.installed:
-    - name: {{ pkgs.redis | default('redis-server') }}
+    - name: {{ pkgs.redis | default('redis') }}
     - refresh: False
 
 /etc/redis:
