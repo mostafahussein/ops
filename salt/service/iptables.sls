@@ -33,6 +33,11 @@ service.iptables:
     - reload: True
     - watch:
       - file: service.iptables
+  {% if grains['os'] == "Gentoo" %}
+      - file: /etc/conf.d/iptables
+  {% elif grains['os'] == "CentOS" %}
+      - file: /etc/sysconfig/iptables-config
+  {% endif %}
   file.managed:
   {% if grains['os'] == "Gentoo" %}
     - name: /var/lib/iptables/rules-save
@@ -59,6 +64,13 @@ service.iptables:
     - user: root
     - group: root
     - template: jinja
+  {% elif grains['os'] == "CentOS" %}
+/etc/sysconfig/iptables-config:
+  file.managed:
+    - source: salt://common/etc/sysconfig/iptables-config
+    - mode: 0600
+    - user: root
+    - group: root
   {% endif %}
 {% endif %}
 
