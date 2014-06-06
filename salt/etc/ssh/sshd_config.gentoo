@@ -140,7 +140,7 @@ PasswordAuthentication no
 #PermitEmptyPasswords no
 
 # Change to no to disable s/key passwords
-{% if ssh.sshd_pubkeyonly is defined -%}
+{% if ssh.pubkeyonly is defined -%}
 ChallengeResponseAuthentication no
 {%- else -%}
 #ChallengeResponseAuthentication yes
