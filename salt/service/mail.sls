@@ -102,8 +102,13 @@ service.exim:
 {{ f.name }}:
   file.managed:
     - source:
+    {% if f.sourcs is defined %}
       - salt:/{{ f.name }}
       - salt://common{{ f.name }}
+    {% else %}
+      - salt:/{{ f.source }}
+      - salt://common{{ f.source }}
+    {% endif %}
     - mode: 0644
     - user: root
     - group: root
