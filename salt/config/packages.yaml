@@ -49,6 +49,7 @@ svscan: daemontools-run
 tftpd: tftpd-hpa
 {% elif grains['os'] == "CentOS" %}
 cron: cronie
+named: bind
 snmpd: net-snmp
 sshd: openssh-server
 {% endif %}
