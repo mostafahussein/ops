@@ -19,6 +19,8 @@ service.rsyslog:
     - sig: "/usr/sbin/rsyslogd"
 {% elif grains['os'] == "Ubuntu" %}
     - sig: "rsyslogd -c5"
+{% elif grains['os'] == "CentOS" %}
+    - sig: "/sbin/rsyslogd -i /var/run/syslogd.pid -c 5"
 {% endif %}
     - watch:
 {% for f in syslogd.get('syslogd_confs', ()) %}
