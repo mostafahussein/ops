@@ -8,6 +8,19 @@
     - mode: 644
     - user: root
     - group: root
+{% elif grains['os'] == "CentOS" %}
+/etc/init.d/rsyncd:
+  file.managed:
+    - source: salt://common/etc/init.d/rsyncd
+    - mode: 755
+    - user: root
+    - group: root
+/etc/xinetd.d/rsync:
+  file.managed:
+    - source: salt://common/etc/xinetd.d/rsync
+    - mode: 644
+    - user: root
+    - group: root
 {% endif %}
 
 service.rsyncd:
@@ -15,12 +28,12 @@ service.rsyncd:
     - name: {{ pkgs.rsync | default('rsync') }}
     - refresh: False
   service.running:
-{% if grains['os'] == "Gentoo" %}
-    - name: rsyncd
-    - sig: "/usr/bin/rsync --daemon"
-{% elif grains['os'] == "Ubuntu" %}
+{% if grains['os'] == "Ubuntu" %}
     - name: rsync
     - sig: "/usr/bin/rsync --no-detach --daemon"
+{% else %}
+    - name: rsyncd
+    - sig: "/usr/bin/rsync --daemon"
 {% endif %}
     - enable: True
     - watch:

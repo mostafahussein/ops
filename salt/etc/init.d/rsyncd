@@ -1,0 +1,92 @@
+#!/bin/bash
+#
+# rsync        takes cars of starting and stopping rsyncd
+#
+# chkconfig: 345 56 50
+# description: rsync daemon
+
+
+### BEGIN INIT INFO
+# Provides:          rsyncd
+# Required-Start:    $local_fs
+# Required-Stop:     $local_fs
+# Short-Description: fast remote file copy program daemon
+# Description: rsync is a program that allows files to be copied to and
+#              from remote machines in much the same way as rcp.
+#              This provides rsyncd daemon functionality. 
+### END INIT INFO
+
+# Source function library.
+. /etc/init.d/functions
+
+RETVAL=0
+
+prog="/usr/bin/rsync"
+
+start() {
+    [ -f /usr/bin/rsync ] || exit 5
+
+    [ -s /etc/sysconfig/rsync ] && . /etc/sysconfig/rsync
+
+    echo -n $"Starting $prog: "
+    daemon $prog --daemon $RSYNC_OPTS
+    RETVAL=$?
+    echo
+    [ $RETVAL -eq 0 ] && touch /var/lock/subsys/rsync
+    return $RETVAL
+}
+
+stop() {
+    [ -f /usr/bin/rsync ] || exit 5
+
+    echo -n $"Shutting down $prog: "
+    killproc -p /var/run/rsyncd.pid $prog
+    RETVAL=$?
+    echo
+    [ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/rsync
+    return $RETVAL
+}
+
+reload(){
+    [ -f /usr/bin/rsync ] || exit 5
+
+    echo -n $"Reloading configuration: "	
+    killproc $prog -HUP
+    RETVAL=$?
+    echo
+    return $RETVAL
+}
+
+restart(){
+    stop
+    start
+}
+
+# See how we were called.
+case "$1" in
+    start)
+	start
+	RETVAL=$?
+	;;
+    stop)
+	stop
+	RETVAL=$?
+	;;
+    status)
+	status $prog
+	RETVAL=$?
+	;;
+    restart)
+	restart
+	RETVAL=$?
+	;;
+    reload|force-reload)
+	reload
+	RETVAL=$?
+	;;
+    *)
+	echo $"Usage: $0 {start|stop|status|restart|reload}"
+	RETVAL=2
+esac
+
+exit $RETVAL
