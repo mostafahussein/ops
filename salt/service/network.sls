@@ -1,4 +1,4 @@
-{# @todo add ipv6 check #}
+{# @todo add strictly ipv6 check, complete match #}
 
 {% import_yaml "config/nics.yaml" as nics with context %}
 {% import_yaml "config/ip.yaml" as ip with context %}
@@ -69,23 +69,49 @@ ipcheck.lo:
 {% if ip.nics is defined %}
   {% for l in ip.nics %}
     {% set ip_seted = ""|list %}
+    {% set ip_seted6 = ""|list %}
     {% for i in l.ip %}
-      {% do ip_seted.append("%s/%s" | format(i.addr, i.mask)) %}
-    {% endfor %}
-    {% set ip_seted = ip_seted|sort %}
-
-    {% set ip_real = ""|list %}
-    {% for i in salt['network.interfaces']()[l.name]['inet'] %}
-      {% if i.address != "127.0.0.1" %}
-        {% do ip_real.append("%s/%s" | format(i.address, i.netmask)) %}
+      {% if i.family|default("inet") == "inet6" %}
+        {% do ip_seted6.append(i.addr) %}
+      {% else %}
+        {% do ip_seted.append("%s/%s" | format(i.addr, i.mask)) %}
       {% endif %}
     {% endfor %}
+    {% set ip_seted = ip_seted|sort %}
+    {% set ip_seted6 = ip_seted6|sort %}
+
+    {% set ip_real = ""|list %}
+    {% set ip_real6 = ""|list %}
+    {# for ipv4 #}
+    {% for k,v in salt['network.interfaces']()[l.name].iteritems() %}
+      {% if v is iterable %}
+        {% for i in v %}
+          {% if i.type|default("") == "inet" or k == "inet" %}
+            {% do ip_real.append("%s/%s" | format(i.address, i.netmask)) %}
+          {% endif %}
+        {% endfor %}
+      {% endif %}
+    {% endfor %}
+    {# for ipv6 #}
+    {% for i in salt['network.interfaces']()[l.name]['inet6'] %}
+      {% do ip_real6.append("%s/%s" | format(i.address, i.prefixlen)) %}
+    {% endfor %}
+
     {% set ip_real = ip_real|sort %}
+    {% set ip_real6 = ip_real6|sort %}
 
     {% if ip_real != ip_seted %}
 ipcheck.{{ l.name }}:
   cmd.run:
     - name: "echo '{{ l.name }}: {{ ip_real }} diff as expected {{ ip_seted }}'"
     {% endif %}
+
+    {% for x in ip_seted6 %}
+      {% if x not in ip_real6 %}
+ipcheck6.{{ l.name }}:
+  cmd.run:
+    - name: "echo '{{ l.name }}: {{ ip_seted6 }} not include in real {{ ip_real6 }}'"
+      {% endif %}
+    {% endfor %}
   {% endfor %}
 {% endif %}
