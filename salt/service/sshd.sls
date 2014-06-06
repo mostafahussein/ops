@@ -5,10 +5,10 @@ service.sshd:
     - name: {{ pkgs.sshd }}
     - refresh: False
   service.running:
-{% if grains['os'] == "Gentoo" %}
-    - name: sshd
-{% elif grains['os'] == "Ubuntu" %}
+{% if grains['os'] == "Ubuntu" %}
     - name: ssh
+{% else %}
+    - name: sshd
 {% endif %}
     - enable: True
     - sig: /usr/sbin/sshd
@@ -16,11 +16,7 @@ service.sshd:
       - file: service.sshd
   file.managed:
     - name: /etc/ssh/sshd_config
-{% if grains['os'] == "Gentoo" %}
-    - source: salt://common/etc/ssh/sshd_config.gentoo
-{% elif grains['os'] == "Ubuntu" %}
-    - source: salt://common/etc/ssh/sshd_config.ubuntu
-{% endif %}
+    - source: salt://common/etc/ssh/sshd_config.{{ grains['os'] | lower }}
     - mode: 0600
     - user: root
     - group: root

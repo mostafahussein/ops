@@ -37,14 +37,18 @@ snmpd: net-analyzer/net-snmp
 spamd: mail-filter/spamassassin
 spawn_fcgi: www-servers/spawn-fcgi
 sshd: net-misc/openssh
+sudo: app-admin/sudo
 svscan: sys-process/daemontools
 tftpd: net-ftp/tftp-hpa
 uwsgi: www-servers/uwsgi
 {% elif grains['os'] == "Ubuntu" %}
+exim: exim4
 named: bind9
 sshd: openssh-server
 svscan: daemontools-run
 tftpd: tftpd-hpa
 {% elif grains['os'] == "CentOS" %}
+cron: cronie
 snmpd: net-snmp
+sshd: openssh-server
 {% endif %}

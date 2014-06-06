@@ -8,15 +8,18 @@ service.sysctl:
     - user: root
     - group: root
     - template: jinja
+{% if grains['os'] != "CentOS" %}
+  {# @todo add sysctl reload for centos #}
   service.enabled:
-{% if grains['os'] == "Gentoo" %}
+  {% if grains['os'] == "Gentoo" %}
     - name: sysctl
-{% elif grains['os'] == "Ubuntu" %}
+  {% elif grains['os'] == "Ubuntu" %}
     - name: procps
-{% endif %}
+  {% endif %}
     - watch:
       - file: /etc/sysctl.conf
       - file: service.sysctl
+{% endif %}
 
 {% if sysctl.settings is defined and sysctl.settings is iterable %}
   {% for setting in sysctl.settings %}

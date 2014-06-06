@@ -76,7 +76,7 @@ service.spamd:
 
 service.exim:
   pkg.installed:
-    - name: {{ pkgs.exim | default("exim4") }}
+    - name: {{ pkgs.exim | default("exim") }}
     - refresh: False
   service.running:
     - enable: True
@@ -86,6 +86,9 @@ service.exim:
 {% elif grains['os'] == "Ubuntu" %}
     - name: exim4
     - sig: "usr/sbin/exim4 -bd -q"
+{% elif grains['os'] == "CentOS" %}
+    - name: exim
+    - sig: "/usr/sbin/exim -bd -q1h"
 {% endif %}
 {% if mail.exim_configs is defined %}
     - watch:

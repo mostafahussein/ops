@@ -6,10 +6,10 @@ service.ntpd:
     - name: {{ pkgs.ntp | default('ntp') }}
     - refresh: False
   service.running:
-{% if grains['os'] == "Gentoo" %}
-    - name: ntpd
-{% elif grains['os'] == "Ubuntu" %}
+{% if grains['os'] == "Ubuntu" %}
     - name: ntp
+{% else %}
+    - name: ntpd
 {% endif %}
     - enable: True
     - sig: /usr/sbin/ntpd
