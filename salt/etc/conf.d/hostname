@@ -2,6 +2,9 @@
 {%- if grains['os'] == "Gentoo" -%}
 # Set to the hostname of this machine
 hostname="{{ idname }}"
+{%- elif grains['os'] == "CentOS" -%}
+NETWORKING=yes
+HOSTNAME={{ idname }}
 {%- else -%}
 {{ idname }}
 {%- endif -%}
