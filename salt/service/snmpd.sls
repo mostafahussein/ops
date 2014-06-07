@@ -17,33 +17,18 @@ service.snmpd:
     - sig: "/usr/sbin/snmpd"
     - watch:
       - file: service.snmpd
+      - file: config.snmpd
+
+config.snmpd:
+  file.managed:
 {% if grains['os'] == "Gentoo" %}
-      - file: /etc/conf.d/snmpd
-
-/etc/conf.d/snmpd:
-  file.managed:
-    - source: salt://common/etc/conf.d/snmpd
-    - mode: 0644
-    - user: root
-    - group: root
-
+    - name: /etc/conf.d/snmpd
 {% elif grains['os'] == "Ubuntu" %}
-      - file: /etc/default/snmpd
-
-/etc/default/snmpd:
-  file.managed:
-    - source: salt://common/etc/default/snmpd
-    - mode: 0644
-    - user: root
-    - group: root
-
+    - name: /etc/default/snmpd
 {% elif grains['os'] == "CentOS" %}
-      - file: /etc/sysconfig/snmpd
-
-/etc/sysconfig/snmpd:
-  file.managed:
-    - source: salt://common/etc/sysconfig/snmpd
+    - name: /etc/sysconfig/snmpd
+{% endif %}
+    - source: salt://common/etc/conf.d/snmpd.{{ grains['os'] | lower }}
     - mode: 0644
     - user: root
     - group: root
-{% endif %}
