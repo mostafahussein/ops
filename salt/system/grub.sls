@@ -1,10 +1,12 @@
+{% if grains['os'] == "CentOS" and
+  grains['osmajorrelease'][0] <= "6" %}
+{% else %}
+
 /etc/default/grub:
   file.managed:
-{% if grains['os'] == "Gentoo" %}
-    - source: salt://common/etc/default/grub.gentoo
-{% elif grains['os'] == "Ubuntu" %}
-    - source: salt://common/etc/default/grub.ubuntu
-{% endif %}
+    - source: salt://common/etc/default/grub.gentoo.{{ grains['os'] | lower }}
     - mode: 644
     - user: root
     - group: root
+
+{% endif %}
