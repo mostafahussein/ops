@@ -4,7 +4,7 @@
 
 /etc/default/grub:
   file.managed:
-    - source: salt://common/etc/default/grub.gentoo.{{ grains['os'] | lower }}
+    - source: salt://common/etc/default/grub.{{ grains['os'] | lower }}
     - mode: 644
     - user: root
     - group: root
