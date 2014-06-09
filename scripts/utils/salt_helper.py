@@ -4,16 +4,26 @@
 import os
 import sys
 import json
+import traceback
 import subprocess
 
 
 def salt_diff(cmd):
     salt_ret = os.tmpfile()
-    p = subprocess.Popen(cmd, stdout=salt_ret)
+    p = subprocess.Popen(cmd, stdout=salt_ret, stderr=salt_ret)
     p.wait()
     salt_ret.seek(0, os.SEEK_SET)
-    salt_json = json.load(salt_ret)
-    salt_ret.close()
+    try:
+        salt_json = json.load(salt_ret)
+    except:
+        salt_ret.seek(0, os.SEEK_SET)
+        content = []
+        for l in (salt_ret.readlines()):
+            content.append(" ".join([">", l]))
+        content.append(traceback.format_exc())
+        return content
+    finally:
+        salt_ret.close()
 
     results = {}
     content = []
