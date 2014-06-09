@@ -1,15 +1,13 @@
 {% import_yaml "config/sysctl.yaml" as sysctl with context %}
 
 service.sysctl:
-  file.managed:
-    - name: /etc/sysctl.d/default.conf
-    - source: salt://common/etc/sysctl.d/default.conf
-    - mode: 644
+{% if grains['os'] == "CentOS" %}
+  file.directory:
+    - name: /etc/sysctl.d/
+    - mode: 755
     - user: root
     - group: root
-    - template: jinja
-{% if grains['os'] != "CentOS" %}
-  {# @todo add sysctl reload for centos #}
+{% else %}
   service.enabled:
   {% if grains['os'] == "Gentoo" %}
     - name: sysctl
@@ -18,8 +16,16 @@ service.sysctl:
   {% endif %}
     - watch:
       - file: /etc/sysctl.conf
-      - file: service.sysctl
+      - file: /etc/sysctl.d/default.conf
 {% endif %}
+
+/etc/sysctl.d/default.conf:
+  file.managed:
+    - source: salt://common/etc/sysctl.d/default.conf
+    - mode: 644
+    - user: root
+    - group: root
+    - template: jinja
 
 {% if sysctl.settings is defined and sysctl.settings is iterable %}
   {% for setting in sysctl.settings %}
