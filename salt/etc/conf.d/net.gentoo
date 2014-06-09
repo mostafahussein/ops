@@ -1,0 +1,11 @@
+{%- import_yaml "config/ip.yaml" as ip with context -%}
+{%- if ip.nics is defined -%}{%- for l in ip.nics -%}
+  {%- if l.addr is defined %}
+config_{{ l.name }}="{{ l.addr | join("\n") }}"
+  {%- else %}
+config_{{ l.name }}="null"
+  {%- endif %}
+{% if l.route is defined -%}
+routes_{{ l.name }}="{{ l.route | join("\n") }}"
+{%- endif %}
+{% endfor -%}{%- endif %}
