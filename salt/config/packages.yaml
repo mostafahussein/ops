@@ -13,9 +13,11 @@ iptables: net-firewall/iptables
 irqbalance: sys-apps/irqbalance
 keepalived: sys-cluster/keepalived
 kerberos: app-crypt/mit-krb5
+lsof: sys-process/lsof
 lvm2: sys-fs/lvm2
 mcelog: app-admin/mcelog
 memcached: net-misc/memcached
+mlocate: sys-apps/mlocate
 mongodb: dev-db/mongodb
 mysql: dev-db/mysql
 nagios: net-analyzer/nagios
@@ -37,9 +39,11 @@ snmpd: net-analyzer/net-snmp
 spamd: mail-filter/spamassassin
 spawn_fcgi: www-servers/spawn-fcgi
 sshd: net-misc/openssh
+strace: dev-util/strace
 sudo: app-admin/sudo
 svscan: sys-process/daemontools
 tftpd: net-ftp/tftp-hpa
+tmux: app-misc/tmux
 uwsgi: www-servers/uwsgi
 {% elif grains['os'] == "Ubuntu" %}
 exim: exim4
