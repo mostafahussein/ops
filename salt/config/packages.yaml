@@ -7,6 +7,7 @@ cron: sys-process/cronie
 dhcpd: net-misc/dhcp
 dovecot: net-mail/dovecot
 exim: mail-mta/exim
+git: dev-vcs/git
 imapproxy: net-mail/up-imapproxy
 ipset: net-firewall/ipset
 iptables: net-firewall/iptables
