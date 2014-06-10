@@ -42,6 +42,7 @@ sshd: net-misc/openssh
 strace: dev-util/strace
 sudo: app-admin/sudo
 svscan: sys-process/daemontools
+tcpdump: net-analyzer/tcpdump
 tftpd: net-ftp/tftp-hpa
 tmux: app-misc/tmux
 uwsgi: www-servers/uwsgi

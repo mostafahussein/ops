@@ -1,6 +1,6 @@
 {% import_yaml "common/config/packages.yaml" as pkgs with context %}
 
-{% for i in ("lsof", "mlocate", "strace") %}
+{% for i in ("lsof", "mlocate", "strace", "tcpdump") %}
 package.{{ i }}:
   pkg.installed:
     - name: {{ pkgs.get(i, i) }}
