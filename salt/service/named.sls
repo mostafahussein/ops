@@ -26,11 +26,15 @@ service.named:
 /etc/conf.d/named:
   file.managed:
     - source: salt://common/etc/conf.d/named
+{% elif grains['os'] == "CentOS" %}
+/etc/sysconfig/named:
+  file.managed:
+    - source: salt://common/etc/sysconfig/named
+{% endif %}
     - mode: 0644
     - user: root
     - group: root
     - template: jinja
-{% endif %}
 
 {% for f in named.get('named_confs', ()) %}
   {% if f.op is not defined %}
