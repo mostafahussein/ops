@@ -1,11 +1,20 @@
 {% import_yaml "common/config/packages.yaml" as pkgs with context %}
 {% import_yaml "config/openvpn.yaml" as openvpn with context %}
 
+{% if grains['os'] == "Gentoo" %}
+{% set user = "openvpn" %}
+{% set group = "openvpn" %}
+{% else %}
+{% set user = "root" %}
+{% set group = "root" %}
+{% endif %}
+
 pkg.openvpn:
   pkg.installed:
     - name: {{ pkgs.openvpn | default('openvpn') }}
     - refresh: False
 
+{#
 /etc/openvpn:
   file.recurse:
     - source: salt://etc/openvpn/common
@@ -13,14 +22,9 @@ pkg.openvpn:
     - include_empty: True
     - dir_mode: '0755'
     - file_mode: '0400'
-    - user: openvpn
-    - group: openvpn
-
-{% for f in openvpn.get('openvpn_symlinks', ()) %}
-{{ f.name }}:
-  file.symlink:
-    - target: {{ f.target }}
-{% endfor %}
+    - user: {{ user }}
+    - group: {{ group }}
+#}
 
 {% for f in openvpn.get('openvpn_scripts', ()) %}
 {{ f.name }}:
@@ -30,13 +34,8 @@ pkg.openvpn:
   file.managed:
     - source: {{ f.source }}
     - mode: '0500'
-    {% if grains['os'] == "Gentoo" %}
-    - user: openvpn
-    - group: openvpn
-    {% elif grains['os'] == "Ubuntu" %}
-    - user: root
-    - group: root
-    {% endif %}
+    - user: {{ user }}
+    - group: {{ group }}
     - template: jinja
     {% if f.location is defined %}
     - defaults:
@@ -45,17 +44,6 @@ pkg.openvpn:
   {% endif %}
 {% endfor %}
 
-{% for f in openvpn.get('openvpn_services', ()) %}
-service.{{ f.name }}:
-  {% if f.get('enabled') %}
-  service.running:
-    - enable: True
-    - sig: {{ f.sig }}
-  {% else %}
-  service.disabled:
-  {% endif %}
-    - name: {{ f.name }}
-{% endfor %}
 
 {% for f in openvpn.get('openvpn_configs', ()) %}
 {{ f.name }}:
@@ -63,13 +51,8 @@ service.{{ f.name }}:
   file.managed:
     - source: {{ f.source }}
     - mode: 0400
-    {% if grains['os'] == "Gentoo" %}
-    - user: openvpn
-    - group: openvpn
-    {% elif grains['os'] == "Ubuntu" %}
-    - user: root
-    - group: root
-    {% endif %}
+    - user: {{ user }}
+    - group: {{ group }}
     - template: jinja
     {% if f.location is defined %}
     - defaults:
@@ -80,12 +63,12 @@ service.{{ f.name }}:
   {% endif %}
 {% endfor %}
 
-{% for f in openvpn.get('openvpn_ccds', ()) %}
+{% for f in openvpn.get('openvpn_files', ()) %}
   {% if f.type == "dir" %}
 {{ f.name }}:
   file.directory:
-    - user: openvpn
-    - group: openvpn
+    - user: {{ user }}
+    - group: {{ group }}
     - mode: 0700
   {% elif f.type == "file" %}
 {{ f.name }}:
@@ -95,13 +78,17 @@ service.{{ f.name }}:
     - group: {{ f.group | default('openvpn') }}
     - mode: {{ f.mode | default('0400') }}
     - template: jinja
-  {% elif f.type == "list" %}
+  {% elif f.type == "symlink" %}
+{{ f.name }}:
+  file.symlink:
+    - target: {{ f.target }}
+  {% elif f.type == "ccds" %}
     {% import_yaml f.name as ccds with context -%}
     {% for d in ccds.ccd_dirs %}
 {{ d.dir }}:
   file.directory:
-    - user: openvpn
-    - group: openvpn
+    - user: {{ user }}
+    - group: {{ group }}
     - mode: 0700
     {% endfor %}
     {% if ccds.configs is defined %}
@@ -113,8 +100,8 @@ service.{{ f.name }}:
           {% else %}
   file.managed:
     - source: salt://common/etc/openvpn/ccds/config
-    - user: openvpn
-    - group: openvpn
+    - user: {{ user }}
+    - group: {{ group }}
     - mode: 0400
     - template: jinja
     - defaults:
@@ -128,13 +115,27 @@ service.{{ f.name }}:
   {% endif %}
 {% endfor %}
 
+{% if grains['os'] == "Gentoo" %}
 /etc/sudoers.d/openvpn:
-{% if openvpn.get('openvpn_has_server') %}
+  {% if openvpn.get('openvpn_has_server') %}
   file.managed:
     - source: salt://common/etc/sudoers.d/openvpn
     - mode: 0440
     - user: root
     - group: root
-{% else %}
+  {% else %}
   file.absent
+  {% endif %}
 {% endif %}
+
+{% for f in openvpn.get('openvpn_services', ()) %}
+service.{{ f.name }}:
+  {% if f.get('enabled') %}
+  service.running:
+    - enable: True
+    - sig: {{ f.sig }}
+  {% else %}
+  service.disabled:
+  {% endif %}
+    - name: {{ f.name }}
+{% endfor %}
