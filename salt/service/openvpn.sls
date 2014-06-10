@@ -74,8 +74,8 @@ pkg.openvpn:
 {{ f.name }}:
   file.managed:
     - source: {{ f.source }}
-    - user: {{ f.user | default('openvpn') }}
-    - group: {{ f.group | default('openvpn') }}
+    - user: {{ f.user | default(user) }}
+    - group: {{ f.group | default(group) }}
     - mode: {{ f.mode | default('0400') }}
     - template: jinja
   {% elif f.type == "symlink" %}
