@@ -80,7 +80,7 @@ ipcheck.lo:
       {% do ip_seted6.update({iface:[]}) %}
     {% endif %}
     {% for i in l.ip %}
-      {% if i.family|default("inet") == "inet6" %}
+      {% if i.family | default("inet") == "inet6" %}
         {% do ip_seted6[iface].append(i.addr) %}
       {% else %}
         {% do ip_seted[iface].append("%s/%s" | format(i.addr, i.mask)) %}
@@ -103,14 +103,14 @@ ipcheck.lo:
     {% for k,v in salt['network.interfaces']()[iface].iteritems() %}
       {% if v is iterable %}
         {% for i in v %}
-          {% if i.type|default("") == "inet" or k == "inet" %}
+          {% if i.type | default("") == "inet" or k == "inet" %}
             {% do ip_real.append("%s/%s" | format(i.address, i.netmask)) %}
           {% endif %}
         {% endfor %}
       {% endif %}
     {% endfor %}
     {# for ipv6 #}
-    {% for i in salt['network.interfaces']()[iface]['inet6'] %}
+    {% for i in salt['network.interfaces']()[iface]['inet6'] | default([]) %}
       {% do ip_real6.append("%s/%s" | format(i.address, i.prefixlen)) %}
     {% endfor %}
 
