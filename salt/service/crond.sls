@@ -40,3 +40,22 @@ service.crond:
     {% endif %}
   {% endfor %}
 {% endif %}
+
+{% if crond.enable_users is not defined %}
+disable_user_crontabs:
+  file.directory:
+  {% if grains['os'] == "CentOS" %}
+    - name: /var/spool/cron/
+    - group: root
+    - mode: 700
+  {% else %}
+    - name: /var/spool/cron/crontabs/
+    - group: crontab
+    - mode: 1730
+  {% endif %}
+    - user: root
+    - clean: True
+  {% if grains['os'] == "Gentoo" %}
+    - exclude_pat: ".keep*"
+  {% endif %}
+{% endif %}
