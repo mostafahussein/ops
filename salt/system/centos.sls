@@ -8,4 +8,7 @@
     - group: root
     - template: jinja
 
+/run:
+  file.symlink:
+    - target: /var/run
 {% endif %}
