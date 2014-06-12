@@ -10,13 +10,17 @@
 
 PROGNAME=$(basename ${0})
 CONFNAME=${PROGNAME#*.}
+PIDDIR="/run/redis.${CONFNAME}"
 
 name="redis-server"
 exec="/usr/sbin/$name"
-pidfile="/run/redis/${PROGNAME}.pid"
+pidfile="${PIDDIR}/${PROGNAME}.pid"
 REDIS_CONFIG="/etc/redis/${CONFNAME}.conf"
 
-[ -e /etc/sysconfig/redis ] && . /etc/sysconfig/redis
+[ -e /etc/sysconfig/redis.${CONFNAME} ] && . /etc/sysconfig/redis.${CONFNAME}
+
+[ -d ${PIDDIR} ] || mkdir -p ${PIDDIR}
+[ $(stat -c "%U" ${PIDDIR}) == ${REDIS_USER-redis} ] || chown ${REDIS_USER-redis} ${PIDDIR}
 
 lockfile=/var/lock/subsys/redis
 

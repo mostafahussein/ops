@@ -1,7 +1,7 @@
 #!/sbin/runscript
 
-PIDPATH=/run/redis
 PROGNAME=${SVCNAME#*.}
+PIDPATH=/run/redis.${PROGNAME}
 
 REDIS_PID="${PIDPATH}/redis.${PROGNAME}.pid"
 REDIS_DIR=${REDIS_DIR:-/var/lib/redis}

@@ -94,8 +94,13 @@ service.redis.{{ t.name }}:
 
       {% if grains['os'] == "Gentoo" %}
 /etc/conf.d/redis.{{ t.name }}:
+      {% elif grains['os'] == "CentOS" %}
+/etc/sysconfig/redis.{{ t.name }}:
+      {% elif grains['os'] == "Ubuntu" %}
+/etc/default/redis.{{ t.name }}:
+      {% endif %}
   file.managed:
-    - source: salt://common/etc/conf.d/redis.svc
+    - source: salt://common/etc/conf.d/redis.{{ grains['os'] | lower }}
     - mode: 644
     - user: root
     - group: root
@@ -105,7 +110,13 @@ service.redis.{{ t.name }}:
         redis_dir: {{ t.attrs.dir }}
         redis_user: {{ t.attrs.user | default('redis') }}
         redis_group: {{ t.attrs.group | default('redis') }}
-      {% endif %}
+
+{{ t.attrs.dir }}:
+  file.directory:
+    - mode: 755
+    - user: {{ t.attrs.user | default('redis') }}
+    - group: {{ t.attrs.group | default('redis') }}
+
     {% endif %}
   {% endfor %}
 

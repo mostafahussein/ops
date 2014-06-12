@@ -21,7 +21,7 @@ NAME=${PROGNAME}
 DESC=${PROGNAME}
 STATUS_NAME=$(basename ${DAEMON})
 
-RUNDIR=/var/run/redis
+RUNDIR=/var/run/redis.${CONFNAME}
 PIDFILE=$RUNDIR/${NAME}.pid
 
 test -x $DAEMON || exit 0
