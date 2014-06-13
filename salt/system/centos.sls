@@ -11,4 +11,17 @@
 /run:
   file.symlink:
     - target: /var/run
+
+/etc/rc.d/rc.local:
+  file.managed:
+    - source: salt://common/etc/rc.local.{{ grains['os'] | lower }}
+    - mode: 755
+    - user: root
+    - group: root
+
+/etc/rc.local:
+  file.symlink:
+    - target: rc.d/rc.local
+    - user: root
+    - group: root
 {% endif %}

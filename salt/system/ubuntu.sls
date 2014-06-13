@@ -16,4 +16,11 @@
     - template: jinja
   {% endfor %}
 
+/etc/rc.local:
+  file.managed:
+    - source: salt://common/etc/rc.local.{{ grains['os'] | lower }}
+    - mode: 755
+    - user: root
+    - group: root
+
 {% endif %}
