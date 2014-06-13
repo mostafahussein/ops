@@ -84,9 +84,9 @@ service.redis.{{ t.name }}:
 /etc/redis/{{ t.name }}.conf:
   file.managed:
     - source: salt://common/etc/redis/redis.conf
-    - mode: 644
-    - user: root
-    - group: root
+    - mode: 400
+    - user: {{ t.attrs.user | default('redis') }}
+    - group: {{ t.attrs.group | default('redis') }}
     - template: jinja
     - defaults:
         name: {{ t.name }}
