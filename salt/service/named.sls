@@ -16,7 +16,7 @@ service.named:
     - sig: "/usr/sbin/named -u named -t /var/named/chroot"
   {% endif %}
 {% endif %}
-    - enable: True
+    - enable: {{ named.enable_sysvinit | default(True) }}
     - watch:
 {% for f in named.get('named_confs', ()) %}
       - file: {{ f.name }}

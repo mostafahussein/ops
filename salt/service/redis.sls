@@ -49,7 +49,7 @@ service.redis.{{ t.name }}:
 service.redis.{{ t.name }}:
   service.running:
     - name: redis.{{ t.name }}
-    - enable: True
+    - enable: {{ redis.enable_sysvinit | default(True) }}
       {% if grains['os'] == "Ubuntu" %}
     - sig: "/usr/bin/redis-server /etc/redis/{{ t.name }}.conf"
       {% else %}
