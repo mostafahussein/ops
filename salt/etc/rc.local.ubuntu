@@ -11,4 +11,6 @@
 #
 # By default this script does nothing.
 
+service procps start
+
 exit 0
