@@ -8,6 +8,7 @@ dhcpd: net-misc/dhcp
 dovecot: net-mail/dovecot
 exim: mail-mta/exim
 git: dev-vcs/git
+htop: sys-process/htop
 imapproxy: net-mail/up-imapproxy
 ipset: net-firewall/ipset
 iptables: net-firewall/iptables

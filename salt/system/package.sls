@@ -1,11 +1,6 @@
 {% import_yaml "common/config/packages.yaml" as pkgs with context %}
 
-{% for i in ("git", "lsof", "mlocate", "strace", "tcpdump") %}
-package.{{ i }}:
-  pkg.installed:
-    - name: {{ pkgs.get(i, i) }}
-    - refresh: False
-{% endfor %}
+{% set pkglist = ["git", "htop", "lsof", "mlocate", "strace", "tcpdump"] %}
 
 {% if grains['os'] == "Gentoo" %}
 
@@ -41,6 +36,8 @@ package.{{ i }}:
 
 {% elif grains['os'] == "Ubuntu" %}
 
+  {% do pkglist.append("realpath") %}
+
   {% import_yaml "config/apt.yaml" as apt with context %}
 /etc/apt/sources.list:
   file.managed:
@@ -63,4 +60,14 @@ package.{{ i }}:
     {% endfor %}
   {% endif %}
 
+{% elif grains['os'] == "CentOS" %}
+  {% do pkglist.append("realpath") %}
 {% endif %}
+
+{% for i in pkglist %}
+package.{{ i }}:
+  pkg.installed:
+    - name: {{ pkgs.get(i, i) }}
+    - refresh: False
+{% endfor %}
+
