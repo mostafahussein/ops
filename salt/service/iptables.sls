@@ -10,6 +10,13 @@
     - user: root
     - group: root
     - source: salt://common/etc/init.d/iptables
+
+/etc/iptables:
+  file.directory:
+    - mode: 755
+    - user: root
+    - group: root
+    - makedirs: True
 {% endif %}
 
 service.iptables:
