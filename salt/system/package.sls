@@ -61,6 +61,21 @@
   {% endif %}
 
 {% elif grains['os'] == "CentOS" %}
+  {% import_yaml "config/yum.yaml" as yum with context %}
+
+  {% if yum.repos is defined and
+    yum.repos is iterable %}
+    {% for f in yum.get("repos", ()) %}
+/etc/yum.repos.d/{{ f.name }}:
+  file.managed:
+    - source: {{ f.source }}
+    - user: root
+    - group: root
+    - mode: 0644
+    - template: jinja
+    {% endfor %}
+  {% endif %}
+
   {% do pkglist.append("realpath") %}
 {% endif %}
 
