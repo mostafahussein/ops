@@ -35,8 +35,8 @@ service.salt-minion:
     - enable: True
 {% if grains['os'] == "Gentoo" %}
     - sig: "/usr/lib/python-exec/python2.7/salt-minion --log-level"
-{% elif grains['os'] == "Ubuntu" %}
-    - sig: "su -c salt-minion"
+{% else %}
+    - sig: "/usr/bin/python /usr/bin/salt-minion"
 {% endif %}
     - watch:
 {% for f in minion_confs %}
