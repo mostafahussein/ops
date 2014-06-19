@@ -13,4 +13,8 @@ service.mcelog:
     - enable: True
 {% endif %}
     - sig: /usr/sbin/mcelog
+{% if grains['os'] == "CentOS" %}
+    - name: mcelogd
+{% else %}
     - name: mcelog
+{% endif %}
