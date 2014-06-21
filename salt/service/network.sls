@@ -2,6 +2,7 @@
 
 {% import_yaml "config/nics.yaml" as nics with context %}
 {% import_yaml "config/ip.yaml" as ip with context %}
+{% set idname = grains['id'].split(".")[0] %}
 
 {% if grains['os'] == "Gentoo" %}
 
@@ -45,33 +46,11 @@ service.net.{{ i }}:
 {% endif %}
 
 {% if grains['os'] == "Ubuntu" %}
-{% if ip.lo is defined %}
-  {% set ip_seted = ""|list %}
-  {% for i in ip.lo %}
-    {% do ip_seted.append("%s/%s" | format(i.addr, i.mask)) %}
-  {% endfor %}
-  {% set ip_seted = ip_seted|sort %}
-
-  {% set ip_real = ""|list %}
-  {% for i in salt['network.interfaces']()['lo']['inet'] %}
-    {% if i.address != "127.0.0.1" %}
-      {% do ip_real.append("%s/%s" | format(i.address, i.netmask)) %}
-    {% endif %}
-  {% endfor %}
-  {% set ip_real = ip_real|sort %}
-
-  {% if ip_real != ip_seted %}
-ipcheck.lo:
-  cmd.run:
-    - name: "echo \"lo: {{ ip_real }} diff as expected {{ ip_seted }}\""
-  {% endif %}
-{% endif %}
-
 
 {% if ip.nics is defined %}
   {% set ip_seted = {} %}
   {% set ip_seted6 = {} %}
-  {% for l in ip.nics %}
+  {% for l in ip.nics.get(idname, ()) %}{%- if l.type in ('lan', 'wan') -%}
     {% set iface = l.name.split(":")[0] %}
     {% if iface not in ip_seted %}
       {% do ip_seted.update({iface:[]}) %}
@@ -83,10 +62,10 @@ ipcheck.lo:
       {% if i.family | default("inet") == "inet6" %}
         {% do ip_seted6[iface].append(i.addr) %}
       {% else %}
-        {% do ip_seted[iface].append("%s/%s" | format(i.addr, i.mask)) %}
+        {% do ip_seted[iface].append(i.addr) %}
       {% endif %}
     {% endfor %}
-  {% endfor %}
+  {% endif %}{% endfor %}
   {% for k in ip_seted %}
     {% set x = ip_seted[k]|sort %}
     {% do ip_seted.update({k:x}) %}
@@ -104,7 +83,9 @@ ipcheck.lo:
       {% if v is iterable %}
         {% for i in v %}
           {% if i.type | default("") == "inet" or k == "inet" %}
-            {% do ip_real.append("%s/%s" | format(i.address, i.netmask)) %}
+            {% if not (iface == "lo" and i.address == "127.0.0.1") %}
+              {% do ip_real.append("%s/%s" | format(i.address, i.netmask)) %}
+            {% endif %}
           {% endif %}
         {% endfor %}
       {% endif %}
