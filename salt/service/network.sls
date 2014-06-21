@@ -50,7 +50,7 @@ service.net.{{ i }}:
 {% if ip.nics is defined %}
   {% set ip_seted = {} %}
   {% set ip_seted6 = {} %}
-  {% for l in ip.nics.get(idname, ()) %}{%- if l.type in ('lan', 'wan') -%}
+  {% for l in ip.nics.get(idname, ()) %}{%- if l.type.split('_')[0] == 'host' -%}
     {% set iface = l.name.split(":")[0] %}
     {% if iface not in ip_seted %}
       {% do ip_seted.update({iface:[]}) %}
