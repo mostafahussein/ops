@@ -2,6 +2,7 @@
 
 service.mcelog:
 {% if grains.get('virtual') != 'physical' or
+  grains['manufacturer'] in ('Xen',) or
   grains['cpu_model'].startswith("AMD") %}
   service.dead:
     - enable: False
