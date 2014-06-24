@@ -1,3 +1,4 @@
+{%- import_yaml "config/rc.yaml" as rc with context -%}
 #!/bin/sh
 #
 # This script will be executed *after* all the other init scripts.
@@ -5,3 +6,7 @@
 # want to do the full Sys V style init stuff.
 
 touch /var/lock/subsys/local
+{%- if rc.extra is defined %}
+
+{{ rc.extra | join("\n") }}
+{%- endif %}

@@ -18,6 +18,7 @@
     - mode: 755
     - user: root
     - group: root
+    - template: jinja
 
 /etc/rc.local:
   file.symlink:

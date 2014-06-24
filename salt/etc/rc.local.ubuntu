@@ -1,3 +1,4 @@
+{%- import_yaml "config/rc.yaml" as rc with context -%}
 #!/bin/sh -e
 #
 # rc.local
@@ -12,5 +13,9 @@
 # By default this script does nothing.
 
 service procps start
+{%- if rc.extra is defined %}
+
+{{ rc.extra | join("\n") }}
+{%- endif %}
 
 exit 0
