@@ -4,7 +4,7 @@
 {% set cpufreq_dir = "/sys/devices/system/cpu" %}
 {% set cpufreq_file = "cpufreq/scaling_governor" %}
 
-{% if 0 == salt['cmd.retcode']('test -f /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor') %}
+{% if salt['file.access']('/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor', 'f') %}
 
   {% for i in range(grains['num_cpus']) %}
 governor.cpu{{ i }}:

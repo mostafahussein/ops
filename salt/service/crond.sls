@@ -29,7 +29,7 @@ service.crond:
     crond.crond_files is iterable %}
   {% for f in crond.get("crond_files", ()) %}
 {{ f.name }}:
-    {% if f.removed is defined %}
+    {% if f.source is not defined %}
   file.absent
     {% else %}
   file.managed:

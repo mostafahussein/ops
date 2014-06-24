@@ -51,12 +51,16 @@
     apt.sources is iterable %}
     {% for f in apt.get("sources", ()) %}
 /etc/apt/sources.list.d/{{ f.name }}:
+      {% if f.source is not defined %}
+  file.absent
+      {% else %}
   file.managed:
     - source: {{ f.source }}
     - user: root
     - group: root
     - mode: 0644
     - template: jinja
+      {% endif %}
     {% endfor %}
   {% endif %}
 
@@ -67,12 +71,16 @@
     yum.repos is iterable %}
     {% for f in yum.get("repos", ()) %}
 /etc/yum.repos.d/{{ f.name }}:
+      {% if f.source is not defined %}
+  file.absent
+      {% else %}
   file.managed:
     - source: {{ f.source }}
     - user: root
     - group: root
     - mode: 0644
     - template: jinja
+      {% endif %}
     {% endfor %}
   {% endif %}
 
