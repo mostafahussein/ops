@@ -28,7 +28,10 @@ config.snmpd:
 {% elif grains['os'] == "CentOS" %}
     - name: /etc/sysconfig/snmpd
 {% endif %}
-    - source: salt://common/etc/conf.d/snmpd.{{ grains['os'] | lower }}
+    - source:
+      - salt://etc/conf.d/snmpd.{{ grains['os'] | lower }}
+      - salt://common/etc/conf.d/snmpd.{{ grains['os'] | lower }}
     - mode: 0644
     - user: root
     - group: root
+    - template: jinja
