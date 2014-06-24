@@ -31,6 +31,8 @@ then
 	. /etc/default/$NAME
 fi
 
+RUNUID=${CHUID:-redis:redis}
+
 set -e
 
 case "$1" in
@@ -38,7 +40,7 @@ case "$1" in
 	echo -n "Starting $DESC: "
 	mkdir -p $RUNDIR
 	touch $PIDFILE
-	chown redis:redis $RUNDIR $PIDFILE
+	chown ${RUNUID} $RUNDIR $PIDFILE
 	chmod 755 $RUNDIR
 
 	if [ -n "$ULIMIT" ]
@@ -46,7 +48,7 @@ case "$1" in
 		ulimit -n $ULIMIT
 	fi
 
-	if start-stop-daemon --start --quiet --umask 007 --pidfile $PIDFILE --chuid redis:redis --exec $DAEMON -- $DAEMON_ARGS
+	if start-stop-daemon --start --quiet --umask 007 --pidfile $PIDFILE --chuid ${RUNUID} --exec $DAEMON -- $DAEMON_ARGS
 	then
 		echo "$NAME."
 	else
