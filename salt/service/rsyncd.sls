@@ -58,14 +58,18 @@ service.rsyncd:
     - content: {{ module.content }}
 {% endfor %}
 
-{% if rsyncd.rsyncd_filters is defined and
-    rsyncd.rsyncd_filters is iterable %}
-  {% for f in rsyncd.rsyncd_filters %}
+{% if rsyncd.filters is defined and rsyncd.filters is iterable %}
+  {% for f in rsyncd.filters %}
 {{ f.name }}:
+    {% if f.source is not defined %}
+  file.absent
+    {% else %}
   file.managed:
     - source: {{ f.source }}
     - mode: 644
     - user: root
     - group: root
+    - template: jinja
+    {% endif %}
   {% endfor %}
 {% endif %}
