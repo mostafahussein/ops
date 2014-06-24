@@ -7,7 +7,7 @@ service.named:
   service.running:
 {% if grains['os'] == "Ubuntu" %}
     - name: bind9
-    - sig: "/usr/sbin/named -u bind"
+    - sig: "/usr/sbin/named -u bind -t /var/lib/named"
 {% else %}
     - name: named
   {% if grains['os'] == "Gentoo" %}
@@ -45,13 +45,20 @@ service.named:
 {{ f.name }}:
   file.{{ fop }}:
     - user: {{ f.user | default('root') }}
+  {% if grains['os'] == "Ubuntu" %}
+    - group: {{ f.group | default('bind') }}
+  {% else %}
     - group: {{ f.group | default('named') }}
+  {% endif %}
   {% if fop == "managed" %}
     - mode: {{ f.mode | default('0640')}}
     - source: salt:/{{ f.source | default(f.name) }}
     - template: jinja
   {% elif fop == "directory" %}
     - mode: {{ f.mode | default('0751') }}
+    {% if f.makedirs is defined %}
+    - makedirs: {{ f.makedirs }}
+    {% endif %}
   {% elif fop == "symlink" %}
     - target: {{ f.target }}
   {% else %}
