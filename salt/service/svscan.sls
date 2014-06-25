@@ -1,7 +1,7 @@
 {% import_yaml "common/config/packages.yaml" as pkgs with context %}
 {% import_yaml "config/svscan.yaml" as svscan with context %}
 
-{% if grains['os'] == "Gentoo" %}
+{% if grains['os'] in ("CentOS", "Gentoo") %}
 {% set svscan_dir = "/service" %}
 {% elif grains['os'] == "Ubuntu" %}
 {% set svscan_dir = "/etc/service" %}

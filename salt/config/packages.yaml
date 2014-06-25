@@ -61,4 +61,5 @@ cron: cronie
 named: bind
 snmpd: net-snmp
 sshd: openssh-server
+svscan: daemontools
 {% endif %}
