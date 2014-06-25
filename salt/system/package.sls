@@ -34,9 +34,9 @@
     {% endif %}
   {% endfor %}
 
-{% elif grains['os'] == "Ubuntu" %}
+  {% do pkglist.extend(("iptraf-ng",)) %}
 
-  {% do pkglist.append("realpath") %}
+{% elif grains['os'] == "Ubuntu" %}
 
   {% import_yaml "config/apt.yaml" as apt with context %}
 /etc/apt/sources.list:
@@ -64,6 +64,8 @@
     {% endfor %}
   {% endif %}
 
+  {% do pkglist.extend(("iptraf", "realpath")) %}
+
 {% elif grains['os'] == "CentOS" %}
   {% import_yaml "config/yum.yaml" as yum with context %}
 
@@ -84,7 +86,23 @@
     {% endfor %}
   {% endif %}
 
-  {% do pkglist.append("realpath") %}
+  {% if yum.gpgs is defined and
+    yum.gpgs is iterable %}
+    {% for f in yum.get("gpgs", ()) %}
+/etc/pki/rpm-gpg/{{ f.name }}:
+      {% if f.source is not defined %}
+  file.absent
+      {% else %}
+  file.managed:
+    - source: {{ f.source }}
+    - user: root
+    - group: root
+    - mode: 0644
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+
+  {% do pkglist.extend(("iptraf-ng", "realpath")) %}
 {% endif %}
 
 {% for i in pkglist %}

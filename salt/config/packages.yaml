@@ -12,6 +12,7 @@ htop: sys-process/htop
 imapproxy: net-mail/up-imapproxy
 ipset: net-firewall/ipset
 iptables: net-firewall/iptables
+iptraf-ng: net-analyzer/iptraf-ng
 irqbalance: sys-apps/irqbalance
 keepalived: sys-cluster/keepalived
 kerberos: app-crypt/mit-krb5
