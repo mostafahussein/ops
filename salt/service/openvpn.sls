@@ -92,7 +92,7 @@ pkg.openvpn:
     - mode: 0700
     {% endfor %}
     {% if ccds.configs is defined %}
-      {% for c in ccds.configs %}
+      {% for c in ccds.configs.get(ccds.config_key, ()) %}
         {% for d in ccds.ccd_dirs %}
 {{ d.dir }}/{{ c.name }}:
           {% if c.get('disabled') %}
