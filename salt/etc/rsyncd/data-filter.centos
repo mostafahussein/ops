@@ -11,6 +11,7 @@
 + /etc/lvm/lvm.conf
 - /etc/lvm/*
 + /home/
++ /opt/
 + /root/
 + /root/.bash_profile
 + /root/.bashrc
