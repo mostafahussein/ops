@@ -133,7 +133,9 @@ service.{{ f.name }}:
   {% if f.get('enabled') %}
   service.running:
     - enable: True
+    {% if f.sig is defined %}
     - sig: {{ f.sig }}
+    {% endif %}
   {% else %}
   service.disabled:
   {% endif %}
