@@ -2,8 +2,8 @@
 {%- set idname = grains['id'].split(".")[0] -%}
 {%- if ip.nics is defined -%}{%- for l in ip.nics.get(idname, ()) -%}
   {%- if l.type.split('_')[0] == 'host' -%}
-    {%- if l.addr is defined %}
-config_{{ l.name }}="{{ l.addr | join("\n") }}"
+    {%- if l.ip is defined %}
+config_{{ l.name }}="{{ l.ip | join("\n", attribute="addr") }}"
     {%- else %}
 config_{{ l.name }}="null"
     {%- endif %}
