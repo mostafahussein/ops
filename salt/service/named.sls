@@ -18,18 +18,24 @@ service.named:
 {% endif %}
     - enable: {{ named.enable_sysvinit | default(True) }}
     - watch:
+      - file: sysconfig.named
 {% for f in named.get('named_confs', ()) %}
       - file: {{ f.name }}
 {% endfor %}
 
+sysconfig.named:
 {% if grains['os'] == "Gentoo" %}
-/etc/conf.d/named:
   file.managed:
+    - name: /etc/conf.d/named
     - source: salt://common/etc/conf.d/named
 {% elif grains['os'] == "CentOS" %}
-/etc/sysconfig/named:
   file.managed:
+    - name: /etc/sysconfig/named
     - source: salt://common/etc/sysconfig/named
+{% elif grains['os'] == "Ubuntu" %}
+  file.managed:
+    - name: /etc/default/bind9
+    - source: salt://common/etc/default/bind9
 {% endif %}
     - mode: 0644
     - user: root
