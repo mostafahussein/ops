@@ -17,6 +17,9 @@ GRUB_CMDLINE_LINUX=""
 #GRUB_BADRAM="0x01234567,0xfefefefe,0x89abcdef,0xefefefef"
 
 # Uncomment to disable graphical terminal (grub-pc only)
+{% if efi is defined and efi -%}
+#
+{%- endif -%}
 GRUB_TERMINAL=console
 
 # The resolution used on graphical terminal

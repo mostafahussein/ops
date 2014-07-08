@@ -8,5 +8,9 @@
     - mode: 644
     - user: root
     - group: root
-
+    - template: jinja
+  {% if salt['file.directory_exists']('/sys/firmware/efi/') %}
+    - defaults:
+        efi: True
+  {% endif %}
 {% endif %}
