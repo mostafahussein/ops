@@ -37,6 +37,7 @@ service.crond:
     - user: root
     - group: root
     - mode: 0644
+    - template: jinja
     {% endif %}
   {% endfor %}
 {% endif %}
@@ -58,4 +59,31 @@ disable_user_crontabs:
   {% if grains['os'] == "Gentoo" %}
     - exclude_pat: ".keep*"
   {% endif %}
+{% endif %}
+
+/etc/cron.d:
+  file.directory:
+    - user: root
+    - group: root
+    - mode: 0755
+    - clean: True
+{% if crond.cron_d_exclude is defined %}
+    - exclude_pat: {{ crond.cron_d_exclude }}
+{% else %}
+  {% if grains['os'] == "Gentoo" %}
+    - exclude_pat: "E@(.keep*)"
+  {% elif grains['os'] == "Ubuntu" %}
+    - exclude_pat: "E@(.placeholder)|(atsar)|(sysstat)"
+  {% else %}
+    - exclude_pat: "E@(0hourly)|(sysstat)"
+  {% endif %}
+{% endif %}
+{% if crond.crond_files is defined and
+    crond.crond_files is iterable %}
+    - require:
+  {% for f in crond.get("crond_files", ()) %}
+    {% if f.source is defined %}
+        - file: {{ f.name }}
+    {% endif %}
+  {% endfor %}
 {% endif %}
