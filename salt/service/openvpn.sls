@@ -105,7 +105,7 @@ pkg.openvpn:
     - mode: 0400
     - template: jinja
     - defaults:
-        loc: {{ c.name | replace('-', '_') }}
+        loc: {{ c.name }}
         s: {{ c.attrs }}
         proto: {{ d.proto }}
           {% endif %}
