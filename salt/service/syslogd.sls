@@ -62,3 +62,21 @@ service.rsyslog:
     - mode: 0644
     - user: root
     - group: root
+
+/etc/rsyslog.d:
+  file.directory:
+    - user: root
+    - group: root
+    - mode: 0755
+    - clean: True
+{% if syslogd.rsyslog_d_exclude is defined %}
+    - exclude_pat: {{ syslogd.rsyslog_d_exclude }}
+{% else %}
+  {% if grains['os'] == "Gentoo" %}
+    - exclude_pat: "E@(.keep*)"
+  {% endif %}
+{% endif %}
+    - require:
+{% for f in syslogd.get('syslogd_confs', ()) %}
+        - file: {{ f.name }}
+{% endfor %}
