@@ -73,7 +73,9 @@ pkg.openvpn:
   {% elif f.type == "file" %}
 {{ f.name }}:
   file.managed:
+    {% if f.source is defined %}
     - source: {{ f.source }}
+    {% endif %}
     - user: {{ f.user | default(user) }}
     - group: {{ f.group | default(group) }}
     - mode: {{ f.mode | default('0400') }}
