@@ -9,6 +9,7 @@ dovecot: net-mail/dovecot
 exim: mail-mta/exim
 git: dev-vcs/git
 htop: sys-process/htop
+ifstat: net-analyzer/ifstat
 imapproxy: net-mail/up-imapproxy
 ipset: net-firewall/ipset
 iptables: net-firewall/iptables
@@ -28,6 +29,7 @@ named: net-dns/bind
 nginx: www-servers/nginx
 ntp: net-misc/ntp
 openvpn: net-misc/openvpn
+pdsh: app-shells/pdsh
 php: dev-lang/php
 postfix: mail-mta/postfix
 redis: dev-db/redis
@@ -48,6 +50,7 @@ svscan: sys-process/daemontools
 tcpdump: net-analyzer/tcpdump
 tftpd: net-ftp/tftp-hpa
 tmux: app-misc/tmux
+traceroute: net-analyzer/traceroute
 uwsgi: www-servers/uwsgi
 {% elif grains['os'] == "Ubuntu" %}
 exim: exim4
