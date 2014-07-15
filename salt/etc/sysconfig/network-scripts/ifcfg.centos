@@ -1,0 +1,20 @@
+{%- set n = 1 -%}
+DEVICE={{ name }}
+ONBOOT=yes
+{%- if name == "lo" %}
+NAME=loopback
+IPADDR=127.0.0.1
+NETMASK=255.0.0.0
+{% else %}
+BOOTPROTO=static
+{% endif -%}
+{%- if ip is defined -%}
+  {%- for i in ip -%}
+IPADDR{{ n }}={{ i.addr.split('/')[0] }}
+NETMASK{{ n }}={{ i.addr.split('/')[1] }}
+    {%- if i.gw is defined %}
+GATEWAY={{ i.gw }}
+    {%- endif %}
+    {%- set n = n + 1 -%}
+  {%- endfor -%}
+{%- endif -%}

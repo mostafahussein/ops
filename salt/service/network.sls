@@ -43,6 +43,44 @@ service.net.{{ i }}:
     - group: root
     - template: jinja
 
+{% elif grains["os"] == "CentOS" %}
+
+  {% set lo_is_defined = False %}
+
+  {% for l in ip.nics.get(idname, ()) %}
+    {% if l.name == "lo" %}{% set lo_is_defined = True %}{% endif %}
+    {% if l.type.split('_')[0] == 'host' %}
+/etc/sysconfig/network-scripts/ifcfg-{{ l.name }}:
+  file.managed:
+    - source:
+  {% if nics is defined and nics.netconf is defined %}
+      - {{ nics.netconf }}
+  {% endif %}
+      - salt://etc/sysconfig/network-scripts/ifcfg.{{ grains['id'] }}
+      - salt://etc/sysconfig/network-scripts/ifcfg.{{ grains['id'].split(".")[0] }}
+    - mode: 0644
+    - user: root
+    - group: root
+    - template: jinja
+    - defaults:
+        name: {{ l.name }}
+        ip: {{ l.ip }}
+    {% endif %}
+  {% endfor %}
+
+  {% if lo_is_defined is not defined %}
+/etc/sysconfig/network-scripts/ifcfg-lo:
+  file.managed:
+    - source:
+      - salt://common/etc/sysconfig/network-scripts/ifcfg.centos
+    - mode: 0644
+    - user: root
+    - group: root
+    - template: jinja
+    - defaults:
+        name: "lo"
+  {% endif %}
+
 {% endif %}
 
 {% if grains['os'] == "Ubuntu" %}
