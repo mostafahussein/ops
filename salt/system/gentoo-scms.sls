@@ -7,7 +7,7 @@
     - user: root
     - group: root
 
-/etc/portage/package.masks/redmine:
+/etc/portage/package.mask/redmine:
   file.managed:
     - source: salt://common/etc/portage/package.mask/redmine
     - mode: 644
