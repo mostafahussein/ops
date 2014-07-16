@@ -29,12 +29,16 @@ service.rsyslog:
 
 {% for f in syslogd.get('syslogd_confs', ()) %}
 {{ f.name }}:
+  {% if f.source is defined %}
   file.managed:
     - source: {{ f.source }}
     - mode: 0644
     - user: root
     - group: root
     - template: jinja
+  {% else %}
+  file.absent
+  {% endif %}
 {% endfor %}
 
 {% if syslogd.logrotate_confs is defined and
