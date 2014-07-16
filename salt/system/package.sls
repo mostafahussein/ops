@@ -7,6 +7,14 @@
 
   {% import_yaml "config/portage.yaml" as portage with context %}
 
+  {% for f in ("package.keywords", "package.mask", "package.use", "repos.conf") %}
+/etc/portage/{{ f }}:
+  file.directory:
+    - mode: 0755
+    - user: root
+    - group: root
+  {% endfor %}
+
   {% for f in portage.confs %}
 /etc/portage/{{ f.name }}:
   file.managed:
