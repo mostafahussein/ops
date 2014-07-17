@@ -100,3 +100,23 @@ service.{{ s.name }}:
 
   {% endfor %}
 {% endif %}
+
+{{ svscan_dir }}:
+  file.directory:
+    - user: root
+    - group: root
+    - mode: 0755
+    - clean: True
+{% if svscan.exclude is defined %}
+    - exclude_pat: {{ svscan.exclude }}
+{% else %}
+  {% if grains['os'] == "Gentoo" %}
+    - exclude_pat: "E@(.keep*)"
+  {% endif %}
+{% endif %}
+{% if svscan.services is defined and svscan.services is iterable %}
+    - require:
+  {% for s in svscan.get('services', ()) %}
+      - file: {{ svscan_dir }}/{{ s.name }}
+  {% endfor %}
+{% endif %}
