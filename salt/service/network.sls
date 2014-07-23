@@ -86,6 +86,17 @@ service.net.{{ i }}:
 {% if grains['os'] == "Ubuntu" %}
 
 {% if ip.nics is defined %}
+  {% set vip = {} %}
+  {% for i in ip.nics.get(idname, ()) %}
+    {% if i.vip is defined %}
+      {% if i.name not in vip %}
+        {% do vip.update({i.name:[]}) %}
+      {% endif %}
+      {% for j in i.vip %}
+        {% do vip[i.name].append(j) %}
+      {% endfor %}
+    {% endif %}
+  {% endfor %}
   {% set ip_seted = {} %}
   {% set ip_seted6 = {} %}
   {% for l in ip.nics.get(idname, ()) %}{%- if l.type.split('_')[0] == 'host' -%}
@@ -121,7 +132,8 @@ service.net.{{ i }}:
       {% if v is iterable %}
         {% for i in v %}
           {% if i.type | default("") == "inet" or k == "inet" %}
-            {% if not (iface == "lo" and i.address == "127.0.0.1") %}
+            {% if not (iface == "lo" and i.address == "127.0.0.1") and
+               not i.address in vip.get(iface, []) %}
               {% do ip_real.append("%s/%s" | format(i.address, i.netmask)) %}
             {% endif %}
           {% endif %}
