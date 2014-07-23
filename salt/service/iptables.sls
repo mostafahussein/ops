@@ -40,6 +40,16 @@ service.iptables:
     - reload: True
     - watch:
       - file: service.iptables
+  {% if grains['os'] == "Ubuntu" %}
+    {% if iptables.ipset_enabled is defined %}
+      - file: /etc/iptables/rules_ipset
+    {% endif %}
+  {% elif grains['os'] == "Gentoo" %}
+    {% if iptables.ipset_enabled is defined %}
+    - require:
+      - service: service.ipset
+    {% endif %}
+  {% endif %}
   {% if grains['os'] == "Gentoo" %}
       - file: /etc/conf.d/iptables
   {% elif grains['os'] == "CentOS" %}
@@ -96,6 +106,7 @@ service.ipset:
     - mode: 0600
     - user: root
     - group: root
+    - template: jinja
     - source:
       - salt://var/lib/ipset/rules-save.{{ idname }}
     {% if iptables.rules is defined %}
@@ -121,6 +132,7 @@ service.ipset:
     - mode: 0600
     - user: root
     - group: root
+    - template: jinja
     - source:
     {% if iptables.rules is defined %}
       - salt://etc/iptables/{{ iptables.ipset_rules }}
