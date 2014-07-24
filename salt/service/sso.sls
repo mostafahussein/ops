@@ -38,9 +38,9 @@ service.slapd:
   file.managed:
     - name: /etc/openldap/slapd.conf
     - source: salt://etc/openldap/slapd.conf.{{ grains['id'] }}
-    - mode: 0644
+    - mode: 0640
     - user: root
-    - group: root
+    - group: ldap
 
 {% for schema in ("freeradius", "openssh-lpk_openldap") %}
 /etc/openldap/schema/{{ schema }}.schema:
