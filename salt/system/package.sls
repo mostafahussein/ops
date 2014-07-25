@@ -25,7 +25,11 @@
   {% for f in portage.confs %}
 /etc/portage/{{ f.name }}:
   file.managed:
-    - source: salt://common/etc/portage/{{ f.name }}
+    - source:
+    {% if f.source is defined %}
+      - {{ f.source }}
+    {% endif %}
+      - salt://common/etc/portage/{{ f.name }}
     - mode: 644
     - user: root
     - group: root
