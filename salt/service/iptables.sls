@@ -3,6 +3,8 @@
 {% import_yaml "common/config/packages.yaml" as pkgs with context %}
 {% import_yaml "config/iptables.yaml" as iptables with context %}
 
+{% set rules_ipset = "" %}
+
 {% if grains['os'] == "Gentoo" %}
   {% set rules_ipset = "/var/lib/ipset/rules-save" %}
   {% set rules_iptables = "/var/lib/iptables/rules-save" %}
@@ -117,18 +119,7 @@ service.ipset:
   service.enabled:
     - name: ipset
     - watch:
-      - file: service.ipset
-  file.managed:
-    - name: /var/lib/ipset/rules-save
-    - mode: 0600
-    - user: root
-    - group: root
-    - template: jinja
-    - source:
-    {% if iptables.ipset_rules is defined %}
-      - salt://var/lib/ipset/{{ iptables.ipset_rules }}
-    {% endif %}
-      - salt://var/lib/ipset/rules-save.{{ idname }}
+      - file: {{ rules_ipset }}
 
 /etc/conf.d/ipset:
   file.managed:
@@ -139,11 +130,11 @@ service.ipset:
   {% else %}
   service.disabled:
     - name: ipset
-  file.absent:
-    - name: /var/lib/ipset/rules-save
   {% endif %}
-{% elif grains['os'] == "Ubuntu" %}
-/etc/iptables/rules_ipset:
+{% endif %}
+
+{% if rules_ipset %}
+{{ rules_ipset }}:
   {% if iptables.ipset_enabled is defined %}
   file.managed:
     - mode: 0600
