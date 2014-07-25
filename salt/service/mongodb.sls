@@ -16,6 +16,7 @@ service.mongodb.{{ t.name }}:
     - watch:
       - file: /etc/conf.d/{{ t.name }}
     {% if t.name != "mongodb" %}
+      - file: /etc/init.d/{{ t.name }}
   file.symlink:
     - name: /etc/init.d/{{ t.name }}
     - user: root
