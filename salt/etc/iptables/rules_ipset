@@ -1,0 +1,22 @@
+{%- import_yaml "config/ipset.yaml" as ipset_config with context -%}
+{%- for s in ipset_config.get('set', ()) %}
+  {%- set set_rule = ['create',] -%}
+  {%- do set_rule.append(s.name) -%}
+  {%- do set_rule.append(s.set_type) -%}
+  {%- for k,v in s.iteritems() -%}
+    {%- if k not in ('name', 'set_type', 'entries') -%}
+      {%- do set_rule.append("%s %s"|format(k, v)) -%}
+    {%- endif -%}
+  {%- endfor -%}
+{{ set_rule|join(' ') }}
+{%- if 'entries' in s -%}
+    {%- for entries in s.entries -%}
+      {%- if 'comment' in entries %}
+# {{ entries.comment }}
+      {%- endif %}
+      {%- for e in entries.entry %}
+add {{ s.name }} {{ e }}
+      {%- endfor %}
+    {%- endfor -%}
+  {%- endif %}
+{% endfor %}

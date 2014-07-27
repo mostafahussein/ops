@@ -1,0 +1,66 @@
+{%- import_yaml "config/iptables.yaml" as iptables_config with context -%}
+{%- set idname = grains['id'].split('.')[0] -%}
+{%- for t in iptables_config.get('table', ()) -%}
+*{{ t.name }}
+  {%- if t.policy is defined -%}
+    {%- for p in t.policy %}
+:{{ p.chain }} {{ p.jump }} [0:0]
+    {%- endfor %}
+    {%- for r in t.rules -%}
+      {%- if 'comment' in r %}
+# {{ r.comment }}
+      {%- endif %}
+      {%- set rule = [] -%}
+      {%- do rule.append(r.action|default(t.action)) -%}
+      {%- do rule.append(r.chain) -%}
+      {%- if 'in-interface' in r -%}
+        {%- do rule.append("-i %s"|format(r['in-interface'])) -%}
+      {%- endif -%}
+      {%- if 'out-interface' in r -%}
+        {%- do rule.append("-o %s"|format(r['out-interface'])) -%}
+      {%- endif -%}
+      {%- if 'proto' in r -%}
+        {%- do rule.append("-p %s"|format(r['proto'])) -%}
+      {%- endif -%}
+      {%- if 'source' in r -%}
+        {%- do rule.append("-s %s"|format(r['source'])) -%}
+      {%- endif -%}
+      {%- if 'destination' in r -%}
+        {%- do rule.append("-d %s"|format(r['destination'])) -%}
+      {%- endif -%}
+      {%- if 'match' in r -%}
+        {% if r.match is string %}
+          {%- set match_list = r.match.split(',') -%}
+        {% elif r.match is iterable %}
+          {%- set match_list = r.match -%}
+        {% endif %}
+        {%- for m in match_list -%}
+          {%- do rule.append("-m %s"|format(m)) -%}
+        {%- endfor -%}
+      {%- endif -%}
+      {%- if 'dport' in r -%}
+        {%- do rule.append("--dport %s"|format(r['dport'])) -%}
+      {%- endif -%}
+      {%- if 'sport' in r -%}
+        {%- do rule.append("--sport %s"|format(r['sport'])) -%}
+      {%- endif -%}
+      {%- if 'dports' in r -%}
+        {%- do rule.append("--dports %s"|format(r['dports'])) -%}
+      {%- endif -%}
+      {%- if 'sports' in r -%}
+        {%- do rule.append("--sports %s"|format(r['sports'])) -%}
+      {%- endif -%}
+      {%- if 'jump' in r -%}
+        {%- do rule.append("-j %s"|format(r['jump'])) -%}
+      {%- endif %}
+      {%- if 'to-source' in r -%}
+        {%- do rule.append("--to-source %s"|format(r['to-source'])) -%}
+      {%- endif %}
+      {%- if 'to-destination' in r -%}
+        {%- do rule.append("--to-destination %s"|format(r['to-destination'])) -%}
+      {%- endif %}
+{% if not r.use|default(True) -%}#{%- endif -%}[0:0] {{ rule|join(' ') }}
+    {%- endfor %}
+  {%- endif %}
+COMMIT
+{% endfor %}

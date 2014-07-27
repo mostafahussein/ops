@@ -63,7 +63,7 @@ service.iptables:
     {% if iptables.rules is defined %}
       - salt://etc/iptables/{{ iptables.rules }}
     {% endif %}
-      - salt://etc/iptables/rules-save.{{ idname }}
+      - salt://common/etc/iptables/rules_iptables
     - mode: 0600
     - user: root
     - group: root
@@ -145,7 +145,7 @@ service.ipset:
     {% if iptables.ipset_rules is defined %}
       - salt://etc/iptables/{{ iptables.ipset_rules }}
     {% endif %}
-      - salt://etc/iptables/rules_ipset.{{ idname }}
+      - salt://common/etc/iptables/rules_ipset
   {% else %}
   file.absent
   {% endif %}
