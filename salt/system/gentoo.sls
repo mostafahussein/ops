@@ -46,14 +46,16 @@ telinit q:
 /etc/udev/rules.d/70-persistent-net.rules:
   file.absent
 
-/etc/udev/rules.d/80-net-name-slot.rules:
-  {% if udev.predictable_nic_name is defined %}
+  {% for f in ("80-net-name-slot.rules", "80-net-setup-link.rules") %}
+/etc/udev/rules.d/{{ f }}:
+    {% if udev.predictable_nic_name is defined %}
   file.absent
-  {% else %}
+    {% else %}
   file.symlink:
     - user: root
     - group: root
     - target: /dev/null
-  {% endif %}
+    {% endif %}
+  {% endfor %}
 
 {% endif %}
