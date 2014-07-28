@@ -29,6 +29,7 @@
     {% if f.source is defined %}
       - {{ f.source }}
     {% endif %}
+      - salt://etc/portage/{{ f.name }}
       - salt://common/etc/portage/{{ f.name }}
     - mode: 644
     - user: root
