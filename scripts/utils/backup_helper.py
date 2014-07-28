@@ -41,10 +41,13 @@ def run_rsync(cfgs, **kwargs):
             sandbox.enable(dst)
 
         p = subprocess.Popen(rsync_cmd, stdout=log_fp, stderr=log_fp)
-        ret = p.wait()
-        if ret != 0:
-            content.append(">> `%s' failed w/ %d\n" %
-                           (" ".join(rsync_cmd), ret))
+        try:
+            ret = p.wait()
+            if ret != 0:
+                content.append(">> `%s' failed w/ %d\n" %
+                               (" ".join(rsync_cmd), ret))
+        except KeyboardInterrupt:
+            p.terminate()
 
         sandbox.disable()
 
