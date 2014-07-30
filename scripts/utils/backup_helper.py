@@ -131,3 +131,50 @@ def run_mysql(cfgs, **kwargs):
         log_fp.write(">>> end @ %s, `%s'\n\n" %
                      (datetime.now(), " ".join(mysql_cmd)))
         log_fp.flush()
+
+
+def run_command(cfgs, **kwargs):
+    content = kwargs.get('content')
+    log_fp = kwargs.get('log', sys.stdout)
+    dry_run = kwargs.get('dry_run', True)
+
+    for c in cfgs:
+        sandbox_dir = c.get('dir')
+        command = c.get('cmd')
+        run_cmd = []
+
+        if not command or not sandbox_dir:
+            content.append(">> command and dir must both be defined: `%s'" % \
+                (c,))
+            continue
+
+        now = datetime.now().strftime("%Y%m%d-%H%M")
+
+        for c in command:
+            c = c % locals()
+            run_cmd.append(c)
+
+        log_fp.write(">>> begin @ %s, `%s'\n" % \
+            (datetime.now(), " ".join(command)))
+
+        if dry_run:
+            log_fp.write(">>> will run command `%s'\n" % (" ".join(run_cmd)))
+        else:
+            sandbox.enable(sandbox_dir)
+            p = subprocess.Popen(run_cmd, stdout=log_fp, stderr=log_fp)
+            try:
+                ret = p.wait()
+                if ret != 0:
+                    content.append(">> `%s' failed w/ %d\n" % \
+                        (" ".join(run_cmd), ret))
+                else:
+                    log_fp.write(">>> command `%s` success\n" % \
+                        " ".join(run_cmd))
+            except KeyboardInterrupt:
+                p.terminate()
+
+        sandbox.disable()
+
+        log_fp.write(">>> end @ %s, `%s'\n" % \
+            (datetime.now(), " ".join(command)))
+        log_fp.flush()
