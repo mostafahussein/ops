@@ -34,7 +34,7 @@
       {% elif f.type == "recurse" %}
   file.recurse:
     - source: {{ f.source }}
-    - clean: {{ f.clean | default(False) }}
+    - clean: {{ f.clean | default(True) }}
         {% if f.exclude is defined %}
     - exclude_pat: "{{ f.exclude }}"
         {% endif %}
