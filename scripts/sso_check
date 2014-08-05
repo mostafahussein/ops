@@ -107,13 +107,19 @@ def pass_check():
 
 您的用户名为 “%s”。密码过期之后任然能通过上述页面修改密码。
 """
-            send_mail(mail_fromaddr, toaddr, subject,
-                      content % (d1, pwchange_url, uid),
-                      host=mail_server, user=mail_user, password=mail_pass,
-                      user_ssl=mail_usessl, priority=1)
+            try:
+                send_mail(mail_fromaddr, toaddr, subject,
+                          content % (d1, pwchange_url, uid),
+                          host=mail_server,
+                          user=mail_user,
+                          password=mail_pass,
+                          user_ssl=mail_usessl,
+                          priority=1)
+            except Exception, e:
+                print(" !! %s" % (e,))
 
     except ldap_ops.LDAPError as e:
-        print("!! %s" % e)
+        print(" !! %s" % e)
 
 
 if __name__ == "__main__":
@@ -134,4 +140,4 @@ if __name__ == "__main__":
     except SystemExit:
         pass
     except:
-        print "Exception:", traceback.format_exc()
+        print " !! Exception:", traceback.format_exc()
