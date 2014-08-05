@@ -2,33 +2,35 @@
 
   {% import_yaml "config/tty.yaml" as tty with context %}
 
-  {% for tty in tty.ttys %}
-/etc/init/{{ tty.name }}.conf:
+  {% if tty is defined and tty is iterable %}
+
+    {% for t in tty.ttys %}
+/etc/init/{{ t.name }}.conf:
   file.managed:
-    {% if tty.rs232 is defined %}
+      {% if t.rs232 is defined %}
     - source: salt://common/etc/init/ttyS.conf
-    {% else %}
+      {% else %}
     - source: salt://common/etc/init/tty.conf
-    {% endif %}
+      {% endif %}
     - mode: 644
     - user: root
     - group: root
     - template: jinja
     - defaults:
-        tty: {{ tty.name }}
-    {% if tty.start is defined %}
-        start: {{ tty.start }}
-        stop: {{ tty.stop }}
-    {% endif %}
-    {% if tty.lxc is defined %}
-        lxc: {{ tty.lxc }}
-    {% endif %}
-    {% if tty.noclear is defined %}
-        noclear: {{ tty.noclear }}
-    {% endif %}
+        tty: {{ t.name }}
+      {% if t.start is defined %}
+        start: {{ t.start }}
+        stop: {{ t.stop }}
+      {% endif %}
+      {% if t.lxc is defined %}
+        lxc: {{ t.lxc }}
+      {% endif %}
+      {% if t.noclear is defined %}
+        noclear: {{ t.noclear }}
+      {% endif %}
 
-/etc/init/{{ tty.name }}.override:
-    {% if tty.manual is defined %}
+/etc/init/{{ t.name }}.override:
+      {% if t.manual is defined %}
   file.managed:
     - source: salt://common/etc/init/manual.override
     - mode: 644
@@ -36,20 +38,21 @@
     - group: root
     - template: jinja
 
-service.{{ tty.name }}:
+service.{{ t.name }}:
   module.wait:
     - name: service.stop
-    {% else %}
+      {% else %}
   file.absent
 
-service.{{ tty.name }}:
+service.{{ t.name }}:
   module.wait:
     - name: service.start
-    {% endif %}
-    - m_name: {{ tty.name }}
+      {% endif %}
+    - m_name: {{ t.name }}
     - watch:
-      - file: /etc/init/{{ tty.name }}.conf
-      - file: /etc/init/{{ tty.name }}.override
-  {% endfor %}
+      - file: /etc/init/{{ t.name }}.conf
+      - file: /etc/init/{{ t.name }}.override
+    {% endfor %}
 
+  {% endif %}
 {% endif %}
