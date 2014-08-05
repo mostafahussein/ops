@@ -29,6 +29,12 @@
         {% if f.source is defined %}
     - source: {{ f.source }}
     - template: jinja
+          {% if f.defaults is defined %}
+    - defaults:
+            {% for k,v in f.defaults.iteritems() %}
+        "{{ k }}": "{{ v }}"
+            {% endfor %}
+          {% endif %}
         {% endif %}
     - mode: {{ f.mode | default('0644')}}
       {% elif f.type == "recurse" %}
