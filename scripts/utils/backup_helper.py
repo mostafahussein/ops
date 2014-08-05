@@ -82,8 +82,8 @@ def run_mysql(cfgs, **kwargs):
                      (datetime.now(), " ".join(mysql_cmd)))
         log_fp.flush()
 
-        filename = osp.join(dst, "%s-%s.mysql.gz" % \
-            (datetime.now().strftime("%Y%m%d-%H%M"), name))
+        filename = osp.join(dst, "%s-%s.mysql.gz" %
+                            (datetime.now().strftime("%Y%m%d-%H%M"), name))
 
         saved_tmp = os.environ.get('TMPDIR')
 
@@ -116,7 +116,7 @@ def run_mysql(cfgs, **kwargs):
                     dump_fp.close()
                     s1 = os.stat(filename).st_size
                     log_fp.write(">>> save file to %s, size %d (%.0f%%)\n" %
-                         (osp.join(dst, filename), s1, s1*100.0/s0))
+                                 (osp.join(dst, filename), s1, s1*100.0/s0))
             except KeyboardInterrupt:
                 p.terminate()
 
@@ -144,8 +144,8 @@ def run_command(cfgs, **kwargs):
         run_cmd = []
 
         if not command or not sandbox_dir:
-            content.append(">> command and dir must both be defined: `%s'" % \
-                (c,))
+            content.append(">> command and dir must both be defined: `%s'" %
+                           (c,))
             continue
 
         now = datetime.now().strftime("%Y%m%d-%H%M")
@@ -154,8 +154,8 @@ def run_command(cfgs, **kwargs):
             c = c % locals()
             run_cmd.append(c)
 
-        log_fp.write(">>> begin @ %s, `%s'\n" % \
-            (datetime.now(), " ".join(command)))
+        log_fp.write(">>> begin @ %s, `%s'\n" %
+                     (datetime.now(), " ".join(command)))
 
         if dry_run:
             log_fp.write(">>> will run command `%s'\n" % (" ".join(run_cmd)))
@@ -165,16 +165,16 @@ def run_command(cfgs, **kwargs):
             try:
                 ret = p.wait()
                 if ret != 0:
-                    content.append(">> `%s' failed w/ %d\n" % \
-                        (" ".join(run_cmd), ret))
+                    content.append(">> `%s' failed w/ %d\n" %
+                                   (" ".join(run_cmd), ret))
                 else:
-                    log_fp.write(">>> command `%s` success\n" % \
-                        " ".join(run_cmd))
+                    log_fp.write(">>> command `%s` success\n" %
+                                 " ".join(run_cmd))
             except KeyboardInterrupt:
                 p.terminate()
 
         sandbox.disable()
 
-        log_fp.write(">>> end @ %s, `%s'\n" % \
-            (datetime.now(), " ".join(command)))
+        log_fp.write(">>> end @ %s, `%s'\n" %
+                     (datetime.now(), " ".join(command)))
         log_fp.flush()
