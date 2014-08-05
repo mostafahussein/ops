@@ -115,6 +115,13 @@ service.net.{{ i }}:
       {% endif %}
     {% endfor %}
   {% endif %}{% endfor %}
+  {# For lo interface #}
+  {% if 'lo' not in ip_seted %}
+    {% do ip_seted.update({'lo':[]}) %}
+    {% do ip_seted6.update({'lo':[]}) %}
+  {% endif %}
+  {% do ip_seted['lo'].append('127.0.0.1/255.0.0.0') %}
+  {% do ip_seted6['lo'].append('::1/128') %}
   {% for k in ip_seted %}
     {% set x = ip_seted[k]|sort %}
     {% do ip_seted.update({k:x}) %}
@@ -132,8 +139,7 @@ service.net.{{ i }}:
       {% if v is iterable %}
         {% for i in v %}
           {% if i.type | default("") == "inet" or k == "inet" %}
-            {% if not (iface == "lo" and i.address == "127.0.0.1") and
-               not i.address in vip.get(iface, []) %}
+            {% if i.address not in vip.get(iface, []) %}
               {% do ip_real.append("%s/%s" | format(i.address, i.netmask)) %}
             {% endif %}
           {% endif %}
