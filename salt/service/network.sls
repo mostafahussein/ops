@@ -6,6 +6,20 @@
 
 {% if grains['os'] == "Gentoo" %}
 
+  {% set netmask2len = {
+    '128.0.0.0': '1',        '192.0.0.0': '2',        '224.0.0.0': '3',
+    '240.0.0.0': '4',        '248.0.0.0': '5',        '252.0.0.0': '6',
+    '254.0.0.0': '7',        '255.0.0.0': '8',        '255.128.0.0': '9',
+    '255.192.0.0': '10',     '255.224.0.0': '11',     '255.240.0.0': '12',
+    '255.248.0.0': '13',     '255.252.0.0': '14',     '255.254.0.0': '15',
+    '255.255.0.0': '16',     '255.255.128.0': '17',   '255.255.192.0': '18',
+    '255.255.224.0': '19',   '255.255.240.0': '20',   '255.255.248.0': '21',
+    '255.255.252.0': '22',   '255.255.254.0': '23',   '255.255.255.0': '24',
+    '255.255.255.128': '25', '255.255.255.192': '26', '255.255.255.224': '27',
+    '255.255.255.240': '28', '255.255.255.248': '29', '255.255.255.252': '30',
+    '255.255.255.252': '31', '255.255.255.255': '32',
+  } %}
+
 /etc/conf.d/net:
   file.managed:
     - source:
@@ -83,9 +97,8 @@ service.net.{{ i }}:
 
 {% endif %}
 
-{% if grains['os'] == "Ubuntu" %}
-
 {% if ip.nics is defined %}
+
   {% set vip = {} %}
   {% for i in ip.nics.get(idname, ()) %}
     {% if i.vip is defined %}
@@ -97,6 +110,7 @@ service.net.{{ i }}:
       {% endfor %}
     {% endif %}
   {% endfor %}
+
   {% set ip_seted = {} %}
   {% set ip_seted6 = {} %}
   {% for l in ip.nics.get(idname, ()) %}{%- if l.type.split('_')[0] == 'host' -%}
@@ -107,8 +121,8 @@ service.net.{{ i }}:
     {% if iface not in ip_seted6 %}
       {% do ip_seted6.update({iface:[]}) %}
     {% endif %}
-    {% for i in l.ip %}
-      {% if i.family | default("inet") == "inet6" %}
+    {% for i in l.get('ip', ()) %}
+      {% if ':' in i.addr %}
         {% do ip_seted6[iface].append(i.addr) %}
       {% else %}
         {% do ip_seted[iface].append(i.addr) %}
@@ -120,7 +134,11 @@ service.net.{{ i }}:
     {% do ip_seted.update({'lo':[]}) %}
     {% do ip_seted6.update({'lo':[]}) %}
   {% endif %}
+  {% if grains['os'] == "Gentoo" %}
+    {% do ip_seted['lo'].append('127.0.0.1/8') %}
+  {% else %}
   {% do ip_seted['lo'].append('127.0.0.1/255.0.0.0') %}
+  {% endif %}
   {% do ip_seted6['lo'].append('::1/128') %}
   {% for k in ip_seted %}
     {% set x = ip_seted[k]|sort %}
@@ -139,16 +157,25 @@ service.net.{{ i }}:
       {% if v is iterable %}
         {% for i in v %}
           {% if i.type | default("") == "inet" or k == "inet" %}
-            {% if i.address not in vip.get(iface, []) %}
-              {% do ip_real.append("%s/%s" | format(i.address, i.netmask)) %}
+            {% if grains['os'] == "Gentoo" %}
+              {% set addr_mask = "%s/%s" | format(i.address, netmask2len[i.netmask]) %}
+            {% else %}
+              {% set addr_mask = "%s/%s" | format(i.address, i.netmask) %}
+            {% endif %}
+            {% if addr_mask not in vip.get(iface, []) %}
+              {% do ip_real.append(addr_mask) %}
             {% endif %}
           {% endif %}
         {% endfor %}
       {% endif %}
     {% endfor %}
+
     {# for ipv6 #}
     {% for i in salt['network.interfaces']()[iface]['inet6'] | default([]) %}
-      {% do ip_real6.append("%s/%s" | format(i.address, i.prefixlen)) %}
+      {# @todo exclude by exact match, i.e. test fe80::/10 #}
+      {% if not (i.address.startswith('fe80::') and i.prefixlen == 64) %}
+        {% do ip_real6.append("%s/%s" | format(i.address, i.prefixlen)) %}
+      {% endif %}
     {% endfor %}
 
     {% set ip_real = ip_real|sort %}
@@ -168,5 +195,4 @@ ipcheck6.{{ iface }}:
       {% endif %}
     {% endfor %}
   {% endfor %}
-{% endif %}
 {% endif %}
