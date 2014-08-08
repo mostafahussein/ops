@@ -11,13 +11,19 @@ service.svscan:
   pkg.installed:
     - name: {{ pkgs.svscan }}
     - refresh: False
+{% if svscan.services is defined and svscan.services is iterable %}
   service.running:
     - name: svscan
     - enable: True
-{% if grains['os'] == "Gentoo" %}
+  {% if grains['os'] == "Gentoo" %}
     - sig: "/usr/bin/svscan {{ svscan_dir }}"
-{% elif grains['os'] == "Ubuntu" %}
+  {% elif grains['os'] in ("CentOS", "Ubuntu") %}
     - sig: "/bin/sh /usr/bin/svscanboot"
+  {% endif %}
+{% else %}
+  service.dead:
+    - name: svscan
+    - enable: False
 {% endif %}
 
 {% if svscan.services is defined and svscan.services is iterable %}
