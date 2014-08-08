@@ -1,0 +1,158 @@
+#!/usr/bin/env python
+# -*- coding: UTF-8 -*-
+"""Yet Another Statd
+
+Usage: %(program)s [-d]
+
+Options:
+
+    -d
+         Turn on debugging prints.
+
+"""
+
+import os
+import sys
+import time
+import json
+import yaml
+import getopt
+import threading
+import traceback
+import multiprocessing
+
+from os import path as osp
+from datetime import datetime
+from copy import deepcopy
+
+if sys.version_info < (2, 6):
+    sys.exit('error: Python 2.6 or later required')
+
+from utils import check_dir
+from utils import ops_log_open
+from stat_linux import sysstat
+
+try:
+    from importlib import import_module
+except:
+    import_module = __import__
+
+program = sys.argv[0]
+
+dir_spool = "/var/spool/yastatd"
+
+do_exit = threading.Event()
+do_debug = False
+
+
+def usage(code, msg=''):
+    print >> sys.stderr, __doc__ % globals()
+    if msg:
+        print >> sys.stderr, msg
+    sys.exit(code)
+
+
+def run_stat(**kwargs):
+    stats = sysstat()
+    for k, v in kwargs.items():
+        if not v:
+            continue
+        module_name = func_name = "stat_%s" % k
+        module = import_module(module_name)
+        stats[k] = getattr(module, func_name)(**v)
+    stats['timestamp'] = int(time.time())
+
+    return stats
+
+
+class stat_thread(threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
+        self.name = "stat_thread"
+        self.log = ops_log_open(syslog={'ident': 'yastatd'})
+
+    def run(self):
+        try:
+            work_dir = osp.dirname(osp.realpath(__file__))
+            yastat_cfg = yaml.load(open(osp.join(work_dir, "yastatd.yaml"),
+                                        "r"))
+        except Exception, e:
+            yastat_cfg = {}
+        try:
+            check_dir(0755, dir_spool)
+            os.chdir(dir_spool)
+        except Exception, e:
+            self.log.critical("%s, %s" % (e, traceback.format_exc()))
+        time_current = int(time.time())
+        time_last = time_next = time_current
+        while not do_exit.is_set():
+            try:
+                dir_json = 'json'
+                check_dir(0755, dir_json)
+
+                time_current = int(time.time())
+
+                # system time changed?
+                if time_current < time_last:
+                    # delete newer record?
+                    pass
+                elif time_current >= time_next:
+                    #  collect data & save to json/yyyymmdd/hhmmss.json
+                    if yastat_cfg:
+                        stats = run_stat(**yastat_cfg)
+                    else:
+                        stats = run_stat()
+                    timestamp = stats.get('timestamp')
+                    json_datetime = datetime.fromtimestamp(timestamp)
+                    json_date = json_datetime.strftime('%Y%m%d')
+                    json_time = json_datetime.strftime('%H%M%S')
+                    dir_json = osp.join(dir_json, json_date)
+                    check_dir(0755, dir_json)
+                    json_file = osp.join(dir_json,
+                                         '.'.join((json_time, 'json')))
+                    json_file_tmp = '.'.join((json_file, 'tmp'))
+                    if do_debug:
+                        print json.dumps({timestamp: stats}, indent=2)
+                    else:
+                        json.dump({timestamp: stats},
+                                   open(json_file_tmp, 'w+'),)
+                        os.rename(json_file_tmp, json_file)
+                    time_last = time_current
+                    time_next = time_current + 60
+            except Exception, e:
+                self.log.critical("%s, %s" % (e, traceback.format_exc()))
+            time.sleep(1.0)
+
+
+class zmq_thread(threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
+        self.name = "zmq_thread"
+
+    def run(self):
+        while not do_exit.is_set():
+            time.sleep(1.0)
+
+if __name__ == "__main__":
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], 'd')
+    except getopt.error, e:
+        usage(1, e)
+
+    for opt, arg in opts:
+        if opt in ('-d',):
+            do_debug = True
+
+    multiprocessing.freeze_support()
+
+    threads = (stat_thread(),)
+    for thread in threads:
+        thread.start()
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt, e:
+        do_exit.set()
+    finally:
+        for thread in threads:
+            thread.join()
