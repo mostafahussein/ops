@@ -86,7 +86,13 @@ service.iptables:
     - group: root
   {% endif %}
 
-  {% if grains['os'] in ("Ubuntu", "Gentoo") %}
+  {% set version = [] %}
+  {% for v in salt['iptables.version']().lstrip('v').split(".") %}
+    {% do version.append(v|int) %}
+  {% endfor %}
+
+  {# "-C" option appears since version 1.4.11 #}
+  {% if version >= (1, 4, 11) %}
     {% set action_set = {'-A': 'append', '-I': 'insert', '-D': 'delete' } %}
     {% if iptables.table is defined and iptables.table is iterable %}
       {% for t in iptables.table %}
