@@ -4,6 +4,11 @@
 {% import_yaml "config/ip.yaml" as ip with context %}
 {% set idname = grains['id'].split(".")[0] %}
 
+{% set nicconfs = ip.nics.get(grains['id'], ()) %}
+{% if not nicconfs %}
+  {% set nicconfs = ip.nics.get(idname, ()) %}
+{% endif %}
+
 {% if grains['os'] == "Gentoo" %}
 
   {% set netmask2len = {
@@ -61,7 +66,7 @@ service.net.{{ i }}:
 
   {% set lo_is_defined = False %}
 
-  {% for l in ip.nics.get(idname, ()) %}
+  {% for l in nicconfs %}
     {% if l.name == "lo" %}{% set lo_is_defined = True %}{% endif %}
     {% if l.type.split('_')[0] == 'host' %}
 /etc/sysconfig/network-scripts/ifcfg-{{ l.name }}:
@@ -100,7 +105,7 @@ service.net.{{ i }}:
 {% if ip.nics is defined %}
 
   {% set vip = {} %}
-  {% for i in ip.nics.get(idname, ()) %}
+  {% for i in nicconfs %}
     {% if i.vip is defined %}
       {% if i.name not in vip %}
         {% do vip.update({i.name:[]}) %}
@@ -113,7 +118,7 @@ service.net.{{ i }}:
 
   {% set ip_seted = {} %}
   {% set ip_seted6 = {} %}
-  {% for l in ip.nics.get(idname, ()) %}{%- if l.type.split('_')[0] == 'host' -%}
+  {% for l in nicconfs %}{%- if l.type.split('_')[0] == 'host' -%}
     {% set iface = l.name.split(":")[0] %}
     {% if iface not in ip_seted %}
       {% do ip_seted.update({iface:[]}) %}
