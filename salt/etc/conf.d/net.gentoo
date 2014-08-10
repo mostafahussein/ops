@@ -1,6 +1,10 @@
 {%- import_yaml "config/ip.yaml" as ip with context -%}
 {%- set idname = grains['id'].split(".")[0] -%}
-{%- if ip.nics is defined -%}{%- for l in ip.nics.get(idname, ()) -%}
+{%- set nicconfs = ip.nics.get(grains['id'], ()) -%}
+{%- if not nicconfs -%}
+  {%- set nicconfs = ip.nics.get(idname, ()) -%}
+{%- endif -%}
+{%- if ip.nics is defined -%}{%- for l in nicconfs -%}
   {%- if l.type.split('_')[0] == 'host' -%}
     {%- if l.ip is defined %}
 config_{{ l.name }}="{{ l.ip | join("\n", attribute="addr") }}"
