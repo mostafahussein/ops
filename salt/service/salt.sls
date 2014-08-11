@@ -43,10 +43,26 @@ service.salt-minion:
       - file: /etc/salt/minion.d/{{ f }}.conf
 {% endfor %}
 
+/etc/salt/minion.d:
+  file.directory:
+    - user: root
+    - group: root
+    - mode: 0755
+    - clean: True
+{% if minion_d_exclude is defined %}
+    - exclude_pat: {{ minion_d_exclude }}
+{% endif %}
+    - require:
+{% for s in minion_confs %}
+        - file: /etc/salt/minion.d/{{ s }}.conf
+{% endfor %}
+
 {% for s in minion_confs %}
 /etc/salt/minion.d/{{ s }}.conf:
   file.managed:
-    - source: salt://common/etc/salt/minion.d/{{ s }}.conf
+    - source:
+       - salt://etc/salt/minion.d/{{ s }}.conf
+       - salt://common/etc/salt/minion.d/{{ s }}.conf
     - mode: 0644
     - user: root
     - group: root
@@ -56,7 +72,7 @@ service.salt-minion:
 service.salt-master:
 {% if salt.get('is_master') %}
 
-  {% set master_confs = ("config", "files", "pillar") %}
+  {% set master_confs = ("config", "files", "output", "pillar", "threads") %}
 
   service.running:
     - name: salt-master
@@ -68,15 +84,29 @@ service.salt-master:
 {% endif %}
     - watch:
   {% for f in master_confs %}
-      - file: /etc/salt/master.d/config.conf
-      - file: /etc/salt/master.d/files.conf
-      - file: /etc/salt/master.d/pillar.conf
+      - file: /etc/salt/master.d/{{ f }}.conf
   {% endfor %}
+
+/etc/salt/master.d:
+  file.directory:
+    - user: root
+    - group: root
+    - mode: 0755
+    - clean: True
+{% if master_d_exclude is defined %}
+    - exclude_pat: {{ master_d_exclude }}
+{% endif %}
+    - require:
+{% for s in master_confs %}
+        - file: /etc/salt/master.d/{{ s }}.conf
+{% endfor %}
 
   {% for f in master_confs %}
 /etc/salt/master.d/{{ f }}.conf:
   file.managed:
-    - source: salt://common/etc/salt/master.d/{{ f }}.conf
+    - source:
+       - salt://etc/salt/master.d/{{ f }}.conf
+       - salt://common/etc/salt/master.d/{{ f }}.conf
     - mode: 644
     - user: root
     - group: root
