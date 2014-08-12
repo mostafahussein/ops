@@ -11,20 +11,47 @@ service.nagios:
 {% if grains['os'] == "Gentoo" %}
     - sig: "/usr/sbin/nagios -d /etc/nagios/nagios.cfg"
 {% endif %}
+{% if nagios.config is defined %}
+    - watch:
+  {% for l in nagios.config %}
+    {% for f in l.configs %}
+        - file: {{ l.location }}/{{ f.name }}
+    {% endfor %}
+  {% endfor %}
+{% endif %}
 
 {% if nagios.config is defined %}
-  {% for f in nagios.config %}
-/etc/nagios/{{ f.name }}:
+  {% for l in nagios.config %}
+{{ l.location }}:
+  file.directory:
+    - user: {{ l.user|default('root') }}
+    - group: {{ l.group|default('root') }}
+    - mode: {{ l.mode|default('0755') }}
+    - clean: True
+    {% if l.exclude is defined %}
+    - exclude_pat: {{ l.exclude }}
+    {% else %}
+      {% if grains['os'] == "Gentoo" %}
+    - exclude_pat: "E@(.keep*)"
+      {% endif %}
+    {% endif %}
+    - require:
+    {% for f in l.configs %}
+      - file: {{ l.location }}/{{ f.name }}
+    {% endfor %}
+    {% for f in l.configs %}
+{{ l.location }}/{{ f.name }}:
   file.managed:
     - source:
-    {% if f.source is defined %}
+      {% if f.source is defined %}
       - {{ f.source }}
-    {% endif %}
-      - salt://etc/nagios/{{ f.name }}
-      - salt://common/etc/nagios/{{ f.name }}
-    - user: root
-    - group: root
-    - mode: 0644
+      {% endif %}
+      - salt:/{{ l.location }}/{{ f.name }}
+      - salt://common{{ l.location }}/{{ f.name }}
+    - user: {{ f.user|default('root') }}
+    - group: {{ f.group|default('root') }}
+    - mode: {{ f.mode|default('0644') }}
     - template: jinja
+    {% endfor %}
   {% endfor %}
 {% endif %}
