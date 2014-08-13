@@ -11,6 +11,11 @@
 # ./ipmi.sh -h HOST -p PASS lan print 1
 # ./ipmi.sh -h HOST -p PASS lan set 1 ipaddr X.X.X.X
 #
+# Set ipmi parameter, modprobe ipmi_devintf; modprobe ipmi_si
+# ipmitool -I open lan set 1 ipaddr X.X.X.X
+# ipmitool -I open lan set 1 netmask 255.255.0.0
+# ipmitool -I open lan set 1 defgw ipaddr X.X.X.X
+# ipmitool -I open lan print 1
 
 # void die(int error, char *message)
 die() {
@@ -44,10 +49,10 @@ fi
 
 CMD="/usr/sbin/ipmitool -I lanplus -H ${HOST} -U ${USER} -y ${HEXKEY}"
 
-if [[ -z ${IPMI_PASSWORD} ]] ; then
-    CMD=${CMD}" -P ${PASS}"
-else
+if [ "x${IPMI_PASSWORD}" != "x" ] ; then
     CMD=${CMD}" -E"
+else
+    CMD=${CMD}" -P ${PASS}"
 fi
 
 [ $# -lt 1 ] && {
