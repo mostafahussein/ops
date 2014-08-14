@@ -8,6 +8,7 @@
 {% if grains['os'] == "Gentoo" %}
   {% set rules_ipset = "/var/lib/ipset/rules-save" %}
   {% set rules_iptables = "/var/lib/iptables/rules-save" %}
+
 {% elif grains['os'] == "Ubuntu" %}
   {% set rules_ipset = "/etc/iptables/rules_ipset" %}
   {% set rules_iptables = "/etc/iptables/rules_iptables" %}
@@ -17,7 +18,7 @@
     - mode: 0755
     - user: root
     - group: root
-    - source: salt://common/etc/init.d/iptables
+    - source: salt://common/etc/init.d/iptables.{{ grains['os'] | lower }}
 
 /etc/iptables:
   file.directory:
@@ -27,7 +28,16 @@
     - makedirs: True
 
 {% elif grains['os'] == "CentOS" %}
+  {% set rules_ipset = "/etc/sysconfig/ipset" %}
   {% set rules_iptables = "/etc/sysconfig/iptables" %}
+
+/etc/rc.d/init.d/iptables:
+  file.managed:
+    - mode: 0755
+    - user: root
+    - group: root
+    - source: salt://common/etc/init.d/iptables.{{ grains['os'] | lower }}
+
 {% endif %}
 
 service.iptables:
