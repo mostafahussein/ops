@@ -3,7 +3,8 @@
 {% import_yaml "common/config/packages.yaml" as pkgs with context %}
 {% import_yaml "config/iptables.yaml" as iptables with context %}
 
-{% set rules_ipset = "" %}
+{% set do_ipset = iptables.ipset_enabled|default(False) %}
+{% set do_iptables = iptables.enabled|default(False) %}
 
 {% if grains['os'] == "Gentoo" %}
   {% set rules_ipset = "/var/lib/ipset/rules-save" %}
@@ -46,7 +47,7 @@ service.iptables:
     - refresh: False
   service:
     - name: iptables
-{% if iptables.enabled is not defined %}
+{% if not do_iptables %}
     - disabled
   file.absent:
     - name: {{ rules_iptables }}
@@ -55,7 +56,7 @@ service.iptables:
     - reload: True
     - watch:
       - file: service.iptables
-  {% if iptables.ipset_enabled is defined %}
+  {% if do_ipset %}
       - file: {{ rules_ipset }}
     {% if grains['os'] == "Gentoo" %}
     - require:
@@ -131,7 +132,7 @@ service.ipset:
     - name: {{ pkgs.ipset | default('ipset') }}
     - refresh: False
 {% if grains['os'] == "Gentoo" %}
-  {% if iptables.ipset_enabled is defined %}
+  {% if do_ipset %}
   service.enabled:
     - name: ipset
     - watch:
@@ -151,7 +152,7 @@ service.ipset:
 
 {% if rules_ipset %}
 {{ rules_ipset }}:
-  {% if iptables.ipset_enabled is defined %}
+  {% if do_ipset %}
   file.managed:
     - mode: 0600
     - user: root
