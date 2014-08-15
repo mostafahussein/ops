@@ -105,24 +105,20 @@ service.iptables:
   {# "-C" option appears since version 1.4.11 #}
   {% if version >= [1, 4, 11] %}
     {% set action_set = {'-A': 'append', '-I': 'insert', '-D': 'delete' } %}
-    {% if iptables.table is defined and iptables.table is iterable %}
-      {% for t in iptables.table %}
-        {% if t.rules is defined %}
-          {% for r in t.rules %}
-            {% if r.do_check|default(True)  %}
+    {% for t in iptables.table|default(()) %}
+      {% for r in t.rules|default(()) %}
+        {% if r.do_check|default(True)  %}
 {{ r.name }}:
   iptables.{{ action_set[r.action|default(t.action)] }}:
     - table: {{ t.name }}
-              {% for k,v in r.iteritems() %}
-                {% if k not in ("do_check", "name", "action", "use") %}
+          {% for k,v in r.iteritems() %}
+            {% if k not in ("do_check", "name", "action", "use") %}
     - {{ k }}: {{ v }}
-                {% endif %}
-              {% endfor %}
             {% endif %}
           {% endfor %}
         {% endif %}
       {% endfor %}
-    {% endif %}
+    {% endfor %}
   {% endif %}
 
 {% endif %}
