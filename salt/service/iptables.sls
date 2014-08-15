@@ -56,17 +56,17 @@ service.iptables:
     - reload: True
     - watch:
       - file: service.iptables
+  {% if grains['os'] == "Gentoo" %}
+      - file: /etc/conf.d/iptables
+  {% elif grains['os'] == "CentOS" %}
+      - file: /etc/sysconfig/iptables-config
+  {% endif %}
   {% if do_ipset %}
       - file: {{ rules_ipset }}
     {% if grains['os'] == "Gentoo" %}
     - require:
       - service: service.ipset
     {% endif %}
-  {% endif %}
-  {% if grains['os'] == "Gentoo" %}
-      - file: /etc/conf.d/iptables
-  {% elif grains['os'] == "CentOS" %}
-      - file: /etc/sysconfig/iptables-config
   {% endif %}
   file.managed:
     - name: {{ rules_iptables }}
@@ -103,7 +103,7 @@ service.iptables:
   {% endfor %}
 
   {# "-C" option appears since version 1.4.11 #}
-  {% if version >= (1, 4, 11) %}
+  {% if version >= [1, 4, 11] %}
     {% set action_set = {'-A': 'append', '-I': 'insert', '-D': 'delete' } %}
     {% if iptables.table is defined and iptables.table is iterable %}
       {% for t in iptables.table %}
