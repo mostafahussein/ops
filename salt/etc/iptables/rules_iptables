@@ -16,17 +16,32 @@
       {%- if 'in-interface' in r -%}
         {%- do rule.append("-i %s"|format(r['in-interface'])) -%}
       {%- endif -%}
+      {%- if 'not-in-interface' in r -%}
+        {%- do rule.append("! -i %s"|format(r['not-in-interface'])) -%}
+      {%- endif -%}
       {%- if 'out-interface' in r -%}
         {%- do rule.append("-o %s"|format(r['out-interface'])) -%}
+      {%- endif -%}
+      {%- if 'not-out-interface' in r -%}
+        {%- do rule.append("! -o %s"|format(r['not-out-interface'])) -%}
       {%- endif -%}
       {%- if 'proto' in r -%}
         {%- do rule.append("-p %s"|format(r['proto'])) -%}
       {%- endif -%}
+      {%- if 'notproto' in r -%}
+        {%- do rule.append("! -p %s"|format(r['notproto'])) -%}
+      {%- endif -%}
       {%- if 'source' in r -%}
         {%- do rule.append("-s %s"|format(r['source'])) -%}
       {%- endif -%}
+      {%- if 'notsource' in r -%}
+        {%- do rule.append("! -s %s"|format(r['notsource'])) -%}
+      {%- endif -%}
       {%- if 'destination' in r -%}
         {%- do rule.append("-d %s"|format(r['destination'])) -%}
+      {%- endif -%}
+      {%- if 'notdestination' in r -%}
+        {%- do rule.append("! -d %s"|format(r['notdestination'])) -%}
       {%- endif -%}
       {%- if 'match' in r -%}
         {% if r.match is string %}
