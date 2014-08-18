@@ -7,7 +7,11 @@ hostname:
 {% elif grains['os'] == "Ubuntu" %}
     - name: /etc/hostname
 {% elif grains['os'] == "CentOS" %}
+  {% if grains['osmajorrelease'][0] == "6" %}
     - name: /etc/sysconfig/network
+  {% elif grains['osmajorrelease'][0] == "7" %}
+    - name: /etc/hostname
+  {% endif %}
 {% endif %}
     - source: salt://common/etc/conf.d/hostname
     - mode: 644
