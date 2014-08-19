@@ -7,6 +7,9 @@
 SELINUX=disabled
 # SELINUXTYPE= can take one of these two values:
 #     targeted - Targeted processes are protected,
+{% if grains['osmajorrelease'][0] == "7" -%}
+#     minimum - Modification of targeted policy. Only selected processes are protected. 
+{% endif -%}
 #     mls - Multi Level Security protection.
 SELINUXTYPE=targeted 
 

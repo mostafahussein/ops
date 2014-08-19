@@ -8,9 +8,11 @@
     - group: root
     - template: jinja
 
+{% if grains['osmajorrelease'][0] == "6" %}
 /run:
   file.symlink:
     - target: /var/run
+{% endif %}
 
 /etc/rc.d/rc.local:
   file.managed:
