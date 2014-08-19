@@ -9,6 +9,7 @@
     - user: root
     - group: root
 {% elif grains['os'] == "CentOS" %}
+  {% if grains['osmajorrelease'][0] == "6" %}
 /etc/init.d/rsyncd:
   file.managed:
     - source: salt://common/etc/init.d/rsyncd
@@ -21,6 +22,7 @@
     - mode: 644
     - user: root
     - group: root
+  {% endif %}
 {% endif %}
 
 service.rsyncd:
