@@ -19,6 +19,7 @@ keepalived: sys-cluster/keepalived
 kerberos: app-crypt/mit-krb5
 lsof: sys-process/lsof
 lvm2: sys-fs/lvm2
+mariadb: dev-db/mariadb
 mcelog: app-admin/mcelog
 memcached: net-misc/memcached
 mlocate: sys-apps/mlocate

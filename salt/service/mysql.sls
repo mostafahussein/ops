@@ -1,8 +1,11 @@
 {% import_yaml "common/config/packages.yaml" as pkgs with context %}
+{% import_yaml "config/mysql.yaml" as mysql with context %}
+
+{% set pkg_name = mysql.pkg|default('mariadb') %}
 
 service.mysqld:
   pkg.installed:
-    - name: {{ pkgs.mysql | default('mysql') }}
+    - name: {{ pkgs.get(pkg_name) }}
     - refresh: False
   service.running:
     - name: mysqld
