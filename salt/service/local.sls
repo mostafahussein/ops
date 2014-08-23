@@ -13,3 +13,11 @@ service.local:
     - mode: 755
     - user: root
     - group: root
+
+/etc/local.d:
+  file.directory:
+    - user: root
+    - group: root
+    - mode: 0755
+    - clean: True
+    - exclude_pat: "E@(README|sysctl.start)"
