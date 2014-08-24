@@ -1,4 +1,5 @@
 {% import_yaml "config/udev.yaml" as udev with context %}
+{% import_yaml "config/lvm.yaml" as lvm with context %}
 
 {% if grains['os'] == "Gentoo" %}
 
@@ -69,16 +70,20 @@ telinit q:
     - exclude_pat: "E@(boot|default|nonetwork|shutdown|single|sysinit)"
 
 {% set runlevels = {
-  'boot': (
+  'boot': [
     'bootmisc', 'consolefont', 'fsck', 'hostname', 'hwclock', 'keymaps',
     'localmount', 'loopback', 'modules', 'mtab', 'net.lo', 'procfs', 'root',
     'swap', 'swapfiles', 'sysctl', 'termencoding', 'tmpfiles.setup',
-    'urandom'),
-  'nonetwork': ('local',),
-  'shutdown': ('killprocs', 'mount-ro', 'savecache'),
-  'single': (),
-  'sysinit': ('devfs', 'dmesg', 'sysfs', 'tmpfiles.dev', 'udev', 'udev-mount'),
+    'urandom'],
+  'nonetwork': ['local',],
+  'shutdown': ['killprocs', 'mount-ro', 'savecache'],
+  'single': [],
+  'sysinit': ['devfs', 'dmesg', 'sysfs', 'tmpfiles.dev', 'udev', 'udev-mount'],
 } %}
+
+{% if lvm.enabled|default(False) %}
+  {% do runlevels['boot'].append('lvm') %}
+{% endif %}
 
 {% for r,v in runlevels.iteritems() %}
   {% for s in v %}
