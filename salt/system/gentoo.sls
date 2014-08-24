@@ -59,3 +59,46 @@ telinit q:
   {% endfor %}
 
 {% endif %}
+
+/etc/runlevels:
+  file.directory:
+    - user: root
+    - group: root
+    - mode: 0755
+    - clean: True
+    - exclude_pat: "E@(boot|default|nonetwork|shutdown|single|sysinit)"
+
+{% set runlevels = {
+  'boot': (
+    'bootmisc', 'consolefont', 'fsck', 'hostname', 'hwclock', 'keymaps',
+    'localmount', 'loopback', 'modules', 'mtab', 'net.lo', 'procfs', 'root',
+    'swap', 'swapfiles', 'sysctl', 'termencoding', 'tmpfiles.setup',
+    'urandom'),
+  'nonetwork': ('local',),
+  'shutdown': ('killprocs', 'mount-ro', 'savecache'),
+  'single': (),
+  'sysinit': ('devfs', 'dmesg', 'sysfs', 'tmpfiles.dev', 'udev', 'udev-mount'),
+} %}
+
+{% for r,v in runlevels.iteritems() %}
+  {% for s in v %}
+/etc/runlevels/{{ r }}/{{ s }}:
+  file.symlink:
+    - user: root
+    - group: root
+    - target: /etc/init.d/{{ s }}
+  {% endfor %}
+
+  {% if v %}
+/etc/runlevels/{{ r }}:
+  file.directory:
+    - user: root
+    - group: root
+    - mode: 0755
+    - clean: True
+    - require:
+    {% for s in v %}
+        - file: /etc/runlevels/{{ r }}/{{ s }}
+    {% endfor %}
+  {% endif %}
+{% endfor %}
