@@ -51,13 +51,13 @@ service.rsyncd:
     - group: root
     - template: jinja
 
-{% for module in pillar.get('rsync_secret', []) %}
-{{ module.name }}:
+{% for module in pillar.get('rsync_secret', {}).keys() %}
+{{ module }}:
   file.managed:
     - mode: 400
     - user: root
     - group: root
-    - content: {{ module.content }}
+    - contents_pillar: rsync_secret:{{ module }}
 {% endfor %}
 
 {% if rsyncd.filters is defined and rsyncd.filters is iterable %}
