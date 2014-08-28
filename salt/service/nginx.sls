@@ -61,13 +61,16 @@ service.nginx:
         group: {{ r.group }}
 {% endfor %}
 
-{% for r in nginx.get('nginx_pam_listfile', []) %}
+{% for r in nginx.get('nginx_pam_listfile', {}) %}
 /etc/nginx/{{ r.name }}:
   file.managed:
+    - source: salt://common/etc/nginx/pam_listfile
     - mode: 644
     - user: root
     - group: root
-    - content: {{ r.content }}
+    - template: jinja
+    - defaults:
+        users: {{ r.content }}
 {% endfor %}
 
 {% if grains['os'] == "Gentoo" %}
