@@ -1,22 +1,31 @@
-{%- import_yaml "config/fstab.yaml" as fstab with context -%}
-{% for e in fstab.get('fstab', ()) -%}
-{% if e.opts == "bind" -%}
-{%- set type = "none" -%}
-{%- set dump = 0 -%}
-{%- set pass = 0 -%}
-{%- else -%}
-{%- set dump = e.dump -%}
-{%- set pass = e.pass -%}
-{%- set type = e.type -%}
-{%- endif %}
-{%- set opts = "%s%s" | format(e.opts, e.get('extraopts', '')) -%}
-{{ e.fs.ljust(36) }} {{ e.mp.ljust(22) }} {{ type.ljust(6) }} {{ opts.ljust(20) }} {{ dump }} {{ pass }}
-{%- if e.get('bind') -%}
-{%- set mp = "/mnt/%s%s" | format(grains['os'] | lower, e.mp) -%}
-{%- set type = "none" -%}
-{%- set opts = "bind" -%}
-{%- set dump = 0 -%}
-{%- set pass = 0 %}
-{{ e.mp.ljust(36) }} {{ mp.ljust(22) }} {{ type.ljust(6) }} {{ opts.ljust(20) }} {{ dump }} {{ pass }}
-{%- endif %}
+{%- import_yaml "config/mount.yaml" as mount with context -%}
+
+{%- for e in mount.devices|default({}) -%}
+  {% if e.disabled|default(False) -%}
+      {%- continue -%}
+  {% elif e.opts == "bind" -%}
+    {%- set label = "%s"|format(e.device) -%}
+    {%- set fs = "none" -%}
+    {%- set dump = 0 -%}
+    {%- set pass = 0 -%}
+  {%- else -%}
+    {%- if e.label is defined -%}
+      {%- set label = "LABEL=%s"|format(e.label) -%}
+    {%- else -%}
+      {%- set label = "%s"|format(e.device) -%}
+    {%- endif -%}
+    {%- set dump = e.dump -%}
+    {%- set pass = e.pass -%}
+    {%- set fs = e.fs -%}
+  {%- endif %}
+  {%- set opts = "%s%s" | format(e.opts, e.get('extraopts', '')) -%}
+{{ label.ljust(36) }} {{ e.mp.ljust(22) }} {{ fs.ljust(6) }} {{ opts.ljust(20) }} {{ dump }} {{ pass }}
+  {%- if e.get('bind') -%}
+    {%- set mp = "/mnt/%s%s" | format(grains['os'] | lower, e.mp) -%}
+    {%- set fs = "none" -%}
+    {%- set opts = "bind" -%}
+    {%- set dump = 0 -%}
+    {%- set pass = 0 %}
+{{ e.mp.ljust(36) }} {{ mp.ljust(22) }} {{ fs.ljust(6) }} {{ opts.ljust(20) }} {{ dump }} {{ pass }}
+  {%- endif %}
 {% endfor %}
