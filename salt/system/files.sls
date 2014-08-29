@@ -11,11 +11,13 @@
     {% if l.exclude is defined %}
     - exclude_pat: "{{ l.exclude }}"
     {% endif %}
+    {% if l.files is defined %}
     - require:
-    {% for f in l.files %}
+      {% for f in l.files %}
       - file: {{ f.name }}
-    {% endfor %}
-    {% for f in l.files %}
+      {% endfor %}
+    {% endif %}
+    {% for f in l.files|default(()) %}
 {{ f.name }}:
       {% if f.type == "dir" %}
   file.directory:
