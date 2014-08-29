@@ -1,4 +1,4 @@
-# @todo check swap label, swap actived or not
+# @todo check swap label
 
 {% import_yaml "config/mount.yaml" as mount with context %}
 
@@ -54,7 +54,15 @@ device.{{ dev }}:
   cmd.run:
     - name: "echo 'device {{ dev }} not exist or not readable.'"
       {% endif %}
-    {% elif fs in ("proc", "tmpfs", "swap") %}
+    {% elif fs in ("vfat",) %}
+      {% set rlabel = salt['cmd.run'](' '.join(('dosfslabel', dev))) %}
+        {% if rlabel != label %}
+label.{{ dev }}:
+  cmd.run:
+    - name: "echo 'label of [{{ dev }}] is [{{ rlabel }}], != [{{ label }}]'"
+        {% endif %}
+
+    {% elif fs in ("devpts", "sysfs", "swap", "tmpfs", "proc") %}
     {% elif fs in ("none",) %}
       {% if opts != "bind" %}
 mount.none.{{ mp }}:
@@ -69,7 +77,16 @@ mount.fs.{{ mp }}:
     - name: "echo 'fs[{{ fs }}] of [{{ dev }}] not supported yet.'"
     {% endif %}
     {% if fs == "swap" %}
+      {% set actived = False %}
       {% if dev not in mswaps.keys() %}
+        {% set rdev = salt['file.stats'](dev).get('target') %}
+        {% if rdev in mswaps.keys() %}
+          {% set actived = True %}
+        {% endif %}
+      {% else %}
+        {% set actived = True %}
+      {% endif %}
+      {% if not actived %}
 swap.{{ mp }}:
   cmd.run:
     - name: "echo 'swap [{{ dev }}] isn't activated.'"
@@ -111,7 +128,7 @@ mount.binddev.{{ mp }}:
     - name: "echo '{{ bmp }} is mounted, but device is {{ alt_dev }}, != {{ mp }}'"
           {% endif %}
           {% if dev != attrs.get('device') %}
-mount.binddevice{{ mp }}:
+mount.binddevice.{{ mp }}:
   cmd.run:
     - name: "echo '{{ bmp }} is mounted, but device is {{ attrs.get('device') }}, != {{ dev }}'"
           {% endif %}
