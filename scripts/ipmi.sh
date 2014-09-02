@@ -1,5 +1,9 @@
 #!/bin/sh
 #
+# Control the front panel identify light
+# default 15s, 0 off, "force" for indefinitely.
+# ./ipmi.sh -h HOST -p PASS chassis identify <interval>
+#
 # Change Password
 #
 # ./ipmi.sh -h HOST -p PASS user list
