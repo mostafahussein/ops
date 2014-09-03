@@ -1,0 +1,5 @@
+[global]
+store-passwords = no
+store-ssl-client-cert-pp = no
+store-plaintext-passwords = no
+store-ssl-client-cert-pp-plaintext = no

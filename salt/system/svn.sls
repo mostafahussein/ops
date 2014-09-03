@@ -24,3 +24,37 @@ svn.status({{ d }}):
     {% endif %}
   {% endfor %}
 {% endif %}
+
+{% set groups = {} %}
+{% for g in salt['group.getent']() %}
+  {% do groups.update({g['gid']: g }) %}
+{% endfor %}
+
+{% for user in svn.users|default(('root',)) %}
+  {% set userinfo = salt['user.info'](user) %}
+  {% if not userinfo %}
+    {% continue %}
+  {% endif %}
+  {% set group = groups[userinfo['gid']]['name'] %}
+  {% set svndir = '/'.join((userinfo['home'], '.subversion')) %}
+  {% if salt['file.directory_exists'](svndir) %}
+    {% for f in ('config', 'servers') %}
+{{ svndir }}/{{ f }}:
+  file.managed:
+    - user: {{ user }}
+    - group: {{ group }}
+    - mode: 644
+    - source:
+      - salt://etc/subversion/{{ f }}
+      - salt://common/etc/subversion/{{ f }}
+    {% endfor %}
+
+    {% for f in salt['file.find']('/'.join((svndir, 'auth')), type='f') %}
+      {% if salt['file.contains'](f, 'password') %}
+svn.auth.{{ f }}:
+  cmd.run:
+    - name: "echo '{{ f }} contains password field, please delete it.'"
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+{% endfor %}
