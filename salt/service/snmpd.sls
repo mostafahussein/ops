@@ -6,7 +6,9 @@ service.snmpd:
     - refresh: False
   file.managed:
     - name: /etc/snmp/snmpd.conf
-    - source: salt://etc/snmp/snmpd.conf
+    - source:
+      - salt://etc/snmp/snmpd.conf
+      - salt://common/etc/snmp/snmpd.conf
     - mode: 644
     - user: root
     - group: root
