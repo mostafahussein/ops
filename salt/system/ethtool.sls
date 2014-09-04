@@ -18,7 +18,12 @@
       {% endfor %}
       {% set rduplex = settings["Duplex"] %}
       {% set rspeed = settings["Speed"].strip('Mb/s')|int %}
-      {% if rspeed < speed or rduplex != duplex %}
+      {% set rlink = settings["Link detected"] %}
+      {% if rlink == "no" %}
+ethtool.{{ n.name }}:
+  cmd.run:
+    - name: "echo 'link of {{ n.name }} is {{ rlink }}.'"
+      {% elif rspeed < speed or rduplex != duplex %}
 ethtool.{{ n.name }}:
   cmd.run:
     - name: "echo 'setting of {{ n.name }} is {{ "(%s/%s)"|format(rspeed, rduplex) }}, mismatch w/ {{ "(%s/%s)"|format(speed, duplex) }}'"
