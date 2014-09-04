@@ -1,8 +1,8 @@
 #!/usr/bin/gawk -f
 
-#2014-04-14T15:11:10.948774+08:00 gw-sanxin2(fd6d:523c:4aff:a:3::fe) daemon.notice vpn-server.sanxin[9142]:  180.76.4.59:2125 TLS: Initial packet from [AF_INET]180.76.4.59:2125 (via [AF_INET]118.192.48.5%eth1), sid=23963e99 32abef1d
-#2014-04-14T15:01:25.190468+08:00 gw-sanxin2(fd6d:523c:4aff:a:3::fe) daemon.notice vpn-server.sanxin[9142]:  180.76.4.63:2132 CRL CHECK FAILED: C=CN, O=Knownsec, OU=JiaSuLe, CN=jsl-cdn-baidu-hk4, emailAddress=jiasule@knownsec.com is REVOKED
-#2014-04-14T14:02:53.332974+08:00 gw-sanxin2(fd6d:523c:4aff:a:3::fe) daemon.notice vpn-server.sanxin[9142]:  222.171.13.130:19749 [linf] Peer Connection Initiated with [AF_INET]222.171.13.130:19749 (via [AF_INET]118.192.48.5%eth1)
+#2014-04-14T15:11:10.948774+08:00 gw-x(fd6d::) daemon.notice vpn-server.xxx[9142]:  1.2.3.4:5 TLS: Initial packet from [AF_INET]180.76.4.59:2125 (via [AF_INET]x.x.x.x%eth1), sid=23963e99 32abef1d
+#2014-04-14T15:01:25.190468+08:00 gw-x(fd6d::) daemon.notice vpn-server.xxx[9142]:  1.2.3.4:5 CRL CHECK FAILED: C=CN, O=X, OU=X, CN=x, emailAddress=x@x.com is REVOKED
+#2014-04-14T14:02:53.332974+08:00 gw-x(fd6d::) daemon.notice vpn-server.xxx[9142]:  1.2.3.4:5 [xxx] Peer Connection Initiated with [AF_INET]1.2.3.4:5 (via [AF_INET]x.x.x.x%eth1)
 BEGIN {
 }
 
@@ -47,16 +47,16 @@ BEGIN {
 }
 
 END {
-    print "==> Connection attempt"
-    for (u in inits) {
-        printf "%5d %s\n", inits[u], u
+    print ">>> User connect statistic"
+    for (u in users) {
+        printf "%5d %s\n", users[u], u
     }
-    print "==> Connection w/ revoked cert"
+    print ">>> Connection w/ revoked cert"
     for (u in crls) {
         printf "%5d %s\n", crls[u], u
     }
-    print "==> User connect statistic"
-    for (u in users) {
-        printf "%5d %s\n", users[u], u
+    print ">>> Connection attempt"
+    for (u in inits) {
+        printf "%5d %s\n", inits[u], u
     }
 }
