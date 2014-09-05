@@ -86,20 +86,34 @@ pkg.openvpn:
     - target: {{ f.target }}
   {% elif f.type == "ccds" %}
     {% import_yaml f.name as ccds with context -%}
+    {% set ccd_list = [] %}
+    {% if ccds.configs is defined %}
+      {% for c in ccds.configs.get(ccds.config_key, ()) %}
+        {% if not c.get('disabled') %}
+          {% do ccd_list.append(c) %}
+        {% endif %}
+      {% endfor %}
+    {% endif %}
     {% for d in ccds.ccd_dirs %}
 {{ d.dir }}:
   file.directory:
     - user: {{ user }}
     - group: {{ group }}
     - mode: 0700
+    - clean: True
+      {% if ccd_list or ccds.ccd_default|default(False) %}
+    - require:
+        {% if ccds.ccd_default|default(False) %}
+        - file: {{ d.dir }}/DEFAULT
+        {% endif %}
+        {% for c in ccd_list %}
+        - file: {{ d.dir }}/{{ c.name }}
+        {% endfor %}
+      {% endif %}
     {% endfor %}
-    {% if ccds.configs is defined %}
-      {% for c in ccds.configs.get(ccds.config_key, ()) %}
-        {% for d in ccds.ccd_dirs %}
+    {% for c in ccd_list %}
+      {% for d in ccds.ccd_dirs %}
 {{ d.dir }}/{{ c.name }}:
-          {% if c.get('disabled') %}
-  file.absent
-          {% else %}
   file.managed:
     - source: salt://common/etc/openvpn/ccds/config
     - user: {{ user }}
@@ -110,10 +124,8 @@ pkg.openvpn:
         loc: {{ c.name }}
         s: {{ c.attrs }}
         proto: {{ d.proto }}
-          {% endif %}
-        {% endfor %}
       {% endfor %}
-    {% endif %}
+    {% endfor %}
   {% endif %}
 {% endfor %}
 
