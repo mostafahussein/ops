@@ -41,15 +41,6 @@ service.spamd:
     - enable: True
     - sig: "/usr/sbin/spamd -d"
 
-service.memcached:
-  pkg.installed:
-    - name: {{ pkgs.memcached | default("memcached") }}
-    - refresh: False
-  service.running:
-    - name: memcached
-    - enable: True
-    - sig: "/usr/bin/memcached -d -p 11211"
-
 service.exim:
   service.dead:
     - enable: False
