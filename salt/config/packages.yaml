@@ -12,6 +12,7 @@ git: dev-vcs/git
 htop: sys-process/htop
 ifstat: net-analyzer/ifstat
 imapproxy: net-mail/up-imapproxy
+inotify-tools: sys-fs/inotify-tools
 ipset: net-firewall/ipset
 iptables: net-firewall/iptables
 iptraf-ng: net-analyzer/iptraf-ng
