@@ -55,6 +55,8 @@
     - mode: 0644
     - template: jinja
 
+  {% set apt_sources_lists = [] %}
+
   {% if apt.sources is defined and
     apt.sources is iterable %}
     {% for f in apt.get("sources", ()) %}
@@ -62,6 +64,7 @@
       {% if f.source is not defined %}
   file.absent
       {% else %}
+        {% do apt_sources_lists.append("".join(("/etc/apt/sources.list.d/", f.name))) %}
   file.managed:
     - source: {{ f.source }}
     - user: root
@@ -69,6 +72,19 @@
     - mode: 0644
     - template: jinja
       {% endif %}
+    {% endfor %}
+  {% endif %}
+
+/etc/apt/sources.list.d:
+  file.directory:
+    - user: root
+    - group: root
+    - mode: 0755
+    - clean: True
+  {% if apt_sources_lists %}
+    - require:
+    {% for f in apt_sources_lists %}
+        - file: {{ f }}
     {% endfor %}
   {% endif %}
 
