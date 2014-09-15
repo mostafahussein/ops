@@ -61,20 +61,13 @@ telinit q:
 
 {% endif %}
 
-/etc/runlevels:
-  file.directory:
-    - user: root
-    - group: root
-    - mode: 0755
-    - clean: True
-    - exclude_pat: "E@(boot|default|nonetwork|shutdown|single|sysinit)"
-
-{% set runlevels = {
+{% set services = {
   'boot': [
     'bootmisc', 'consolefont', 'fsck', 'hostname', 'hwclock', 'keymaps',
     'localmount', 'loopback', 'modules', 'mtab', 'net.lo', 'procfs', 'root',
     'swap', 'swapfiles', 'sysctl', 'termencoding', 'tmpfiles.setup',
     'urandom'],
+  'default': [],
   'nonetwork': ['local',],
   'shutdown': ['killprocs', 'mount-ro', 'savecache'],
   'single': [],
@@ -82,10 +75,21 @@ telinit q:
 } %}
 
 {% if lvm.enabled|default(False) %}
-  {% do runlevels['boot'].append('lvm') %}
+  {% do services['boot'].append('lvm') %}
 {% endif %}
 
-{% for r,v in runlevels.iteritems() %}
+/etc/runlevels:
+  file.directory:
+    - user: root
+    - group: root
+    - mode: 0755
+    - clean: True
+    - require:
+{% for r in services.keys() %}
+        - file: /etc/runlevels/{{ r }}
+{% endfor %}
+
+{% for r,v in services.iteritems() %}
   {% for s in v %}
 /etc/runlevels/{{ r }}/{{ s }}:
   file.symlink:
@@ -94,13 +98,15 @@ telinit q:
     - target: /etc/init.d/{{ s }}
   {% endfor %}
 
-  {% if v %}
 /etc/runlevels/{{ r }}:
   file.directory:
     - user: root
     - group: root
     - mode: 0755
+  {% if r not in ("default",) %}
     - clean: True
+  {% endif %}
+  {% if v %}
     - require:
     {% for s in v %}
         - file: /etc/runlevels/{{ r }}/{{ s }}
