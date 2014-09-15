@@ -2,6 +2,8 @@ dev-lang/php -cjk
 dev-lang/python -berkdb
 dev-vcs/git perl -subversion
 dev-vcs/subversion apache2 -berkdb -dso
+net-analyzer/fping suid
+net-analyzer/rrdtool perl
 net-analyzer/wireshark -gtk3
 net-dns/bind -berkdb dlz -mysql
 net-firewall/iptables -static-libs
