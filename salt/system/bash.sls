@@ -26,11 +26,11 @@
     - exclude_pat: {{ bash.profile_d_exclude }}
 {% else %}
   {% if grains['os'] in ("Gentoo",) %}
-    - exclude_pat: "E@(^bash-completion.sh$)|(^colorsvn-env.sh$)|(^java-config-2.c?sh$)"
+    - exclude_pat: "E@^(bash-completion\\.sh|colorsvn-env\\.sh|java-config-2\\.c?sh)$"
   {% elif grains['os'] in ("Ubuntu",) %}
-    - exclude_pat: "E@(^bash_completion.sh$)"
+    - exclude_pat: "E@^bash_completion\\.sh$"
   {% else %}
-    - exclude_pat: "E@(^colorls.c?sh$)|(^glib2.c?sh$)|(^lang.c?sh$)|(^less.c?sh$)|(^vim.c?sh$)|(^which2.c?sh$)"
+    - exclude_pat: "E@^(colorls\\.c?sh|glib2\\.c?sh|lang\\.c?sh|less\\.c?sh|vim\\.c?sh|which2\\.c?sh)$"
   {% endif %}
 {% endif %}
 {% if profile_helpers %}

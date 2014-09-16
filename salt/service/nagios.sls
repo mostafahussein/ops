@@ -32,7 +32,7 @@ service.nagios:
     - exclude_pat: {{ l.exclude }}
     {% else %}
       {% if grains['os'] == "Gentoo" %}
-    - exclude_pat: "E@(.keep*)"
+    - exclude_pat: ".keep*"
       {% endif %}
     {% endif %}
     - require:

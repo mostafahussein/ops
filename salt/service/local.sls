@@ -20,4 +20,4 @@ service.local:
     - group: root
     - mode: 0755
     - clean: True
-    - exclude_pat: "E@(README|sysctl.start)"
+    - exclude_pat: "E@^(README|sysctl\\.start)$"

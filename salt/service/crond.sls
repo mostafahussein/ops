@@ -71,11 +71,11 @@ disable_user_crontabs:
     - exclude_pat: {{ crond.cron_d_exclude }}
 {% else %}
   {% if grains['os'] == "Gentoo" %}
-    - exclude_pat: "E@(.keep*)"
+    - exclude_pat: ".keep*"
   {% elif grains['os'] == "Ubuntu" %}
-    - exclude_pat: "E@(.placeholder)|(atsar)|(sysstat)"
+    - exclude_pat: "E@^(\\.placeholder|atsar|sysstat)$"
   {% else %}
-    - exclude_pat: "E@(0hourly)|(sysstat)"
+    - exclude_pat: "E@^(0hourly|sysstat)$"
   {% endif %}
 {% endif %}
 {% if crond.crond_files is defined and

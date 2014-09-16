@@ -117,7 +117,7 @@ service.{{ s.name }}:
     - exclude_pat: {{ svscan.exclude }}
 {% else %}
   {% if grains['os'] == "Gentoo" %}
-    - exclude_pat: "E@(.keep*)"
+    - exclude_pat: ".keep*"
   {% endif %}
 {% endif %}
 {% if svscan.services is defined and svscan.services is iterable %}

@@ -17,7 +17,7 @@
     - group: {{ group }}
     - mode: 0700
     - clean: true
-    - exclude_pat: "E@(^config$)|(^known_hosts$)"
+    - exclude_pat: "E@^(config|known_hosts)$"
     - require:
         - file: {{ homedir }}/authorized_keys
   {% for p in f.privkeys|default() %}
