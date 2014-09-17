@@ -1,5 +1,6 @@
 dev-lang/php -cjk
 dev-lang/python -berkdb
+dev-libs/nss utils
 dev-vcs/git perl -subversion
 dev-vcs/subversion apache2 -berkdb -dso
 net-analyzer/fping suid
