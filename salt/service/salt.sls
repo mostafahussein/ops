@@ -79,8 +79,8 @@ service.salt-master:
     - enable: True
 {% if grains['os'] == "Gentoo" %}
     - sig: "/usr/lib/python-exec/python2.7/salt-master --log-level"
-{% elif grains['os'] == "Ubuntu" %}
-    - sig: "su -c salt-master"
+{% else %}
+    - sig: "/usr/bin/python /usr/bin/salt-master"
 {% endif %}
     - watch:
   {% for f in master_confs %}
