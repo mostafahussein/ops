@@ -12,9 +12,11 @@
     {% if n.name not in ("lo",) and n.type.split('_')[0] in ("host",) %}
       {% set sduplex = duplex %}
       {% set sspeed = speed %}
+      {% set slink = True %}
       {% set local_conf = ethtool.conf.get('local') %}
       {% if local_conf %}
       {% set local_nic_conf = local_conf.get(n.name, {}) %}
+        {% set slink = local_nic_conf.get('link', True) %}
         {% if local_nic_conf.get('duplex') %}
           {% set sduplex = local_nic_conf.get('duplex') %}
         {% endif %}
@@ -33,9 +35,11 @@
       {% set rspeed = settings["Speed"].strip('Mb/s')|int %}
       {% set rlink = settings["Link detected"] %}
       {% if rlink == "no" %}
+        {% if slink %}
 ethtool.{{ n.name }}:
   cmd.run:
     - name: "echo 'link of {{ n.name }} is {{ rlink }}.'"
+        {% endif %}
       {% elif rspeed < sspeed or rduplex != sduplex %}
 ethtool.{{ n.name }}:
   cmd.run:
