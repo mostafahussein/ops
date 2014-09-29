@@ -26,6 +26,7 @@ mcelog: app-admin/mcelog
 memcached: net-misc/memcached
 mlocate: sys-apps/mlocate
 mongodb: dev-db/mongodb
+mosh: net-misc/mosh
 mysql: dev-db/mysql
 nagios: net-analyzer/nagios
 named: net-dns/bind

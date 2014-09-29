@@ -1,7 +1,7 @@
 {% import_yaml "common/config/packages.yaml" as pkgs with context %}
 
 {% set pkglist = [
-  "fping", "git", "htop", "ifstat", "inotify-tools", "lsof", "mlocate",
+  "fping", "git", "htop", "ifstat", "inotify-tools", "lsof", "mlocate", "mosh",
   "pdsh", "strace", "tcpdump", "traceroute"] %}
 
 {% if grains['os'] == "Gentoo" %}
