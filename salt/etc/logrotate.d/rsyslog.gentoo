@@ -10,21 +10,19 @@
 	delaycompress
 	compress
 	postrotate
-		kill -HUP $(cat /run/rsyslogd.pid) >/dev/null 2>&1 || true
+		test -r /run/rsyslogd.pid && kill -HUP $(cat /run/rsyslogd.pid) &>/dev/null
 	endscript
 }
 
-/var/log/mail.info
-/var/log/mail.warn
-/var/log/mail.err
-/var/log/mail.log
+/var/log/auth.log
+/var/log/cron.log
 /var/log/daemon.log
 /var/log/kern.log
-/var/log/auth.log
-/var/log/user.log
 /var/log/lpr.log
-/var/log/cron.log
-/var/log/debug
+/var/log/mail.log
+/var/log/news.log
+/var/log/user.log
+/var/log/debug.log
 /var/log/messages
 {%- if attrs.weekly is defined %}
 {{ attrs.weekly | join('\n') }}
@@ -38,6 +36,6 @@
 	delaycompress
 	sharedscripts
 	postrotate
-		kill -HUP $(cat /run/rsyslogd.pid) >/dev/null 2>&1 || true
+		test -r /run/rsyslogd.pid && kill -HUP $(cat /run/rsyslogd.pid) &>/dev/null
 	endscript
 }
