@@ -1,6 +1,11 @@
+{% set idname = grains['id'].split('.')[0] %}
+
 /etc/nsswitch.conf:
   file.managed:
-    - source: salt://common/etc/nsswitch.conf.{{ grains['os'] | lower }}
+    - source:
+        - salt://etc/nsswitch.conf.{{ grains['id'] | lower }}
+        - salt://etc/nsswitch.conf.{{ idname | lower }}
+        - salt://common/etc/nsswitch.conf.{{ grains['os'] | lower }}
     - mode: 0644
     - user: root
     - group: root
