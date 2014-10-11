@@ -7,7 +7,7 @@
     - user: {{ l.user | default('root') }}
     - group: {{ l.group | default('root') }}
     - mode: {{ l.mode | default('0755') }}
-    - clean: True
+    - clean: {{ l.clean | default(True) }}
     {% if l.exclude is defined %}
     - exclude_pat: "{{ l.exclude }}"
     {% endif %}
