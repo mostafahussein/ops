@@ -44,6 +44,7 @@ salt: app-admin/salt
 samba: net-fs/samba
 saslauthd: dev-libs/cyrus-sasl
 slapd: net-nds/openldap
+smartmontools: sys-apps/smartmontools
 snmpd: net-analyzer/net-snmp
 spamd: mail-filter/spamassassin
 spawn_fcgi: www-servers/spawn-fcgi
