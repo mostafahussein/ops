@@ -13,6 +13,7 @@ htop: sys-process/htop
 ifstat: net-analyzer/ifstat
 imapproxy: net-mail/up-imapproxy
 inotify-tools: sys-fs/inotify-tools
+ipsec: net-misc/libreswan
 ipset: net-firewall/ipset
 iptables: net-firewall/iptables
 iptraf-ng: net-analyzer/iptraf-ng
@@ -57,8 +58,10 @@ tftpd: net-ftp/tftp-hpa
 tmux: app-misc/tmux
 traceroute: net-analyzer/traceroute
 uwsgi: www-servers/uwsgi
+xl2tpd: net-dialup/xl2tpd
 {% elif grains['os'] == "Ubuntu" %}
 exim: exim4
+ipsec: openswan
 named: bind9
 redis: redis-server
 sshd: openssh-server
@@ -66,6 +69,7 @@ svscan: daemontools-run
 tftpd: tftpd-hpa
 {% elif grains['os'] == "CentOS" %}
 cron: cronie
+ipsec: libreswan
 named: bind
 snmpd: net-snmp
 sshd: openssh-server
