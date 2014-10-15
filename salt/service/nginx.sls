@@ -19,6 +19,23 @@ service.nginx:
       - file: /etc/nginx/{{ f.name }}
 {% endfor %}
 
+/etc/nginx:
+  file.directory:
+    - user: root
+    - group: root
+    - mode: 0755
+    - clean: True
+{% if grains['os'] == "Gentoo" %}
+    - exclude_pat: "E@^(scgi|fastcgi|uwsgi)_params|mime.types|fastcgi.conf$"
+{% endif %}
+    - require:
+{% for f in nginx.get('nginx_confs', ()) %}
+      - file: /etc/nginx/{{ f.name }}
+{% endfor %}
+{% for r in nginx.get('nginx_pam_listfile', {}) %}
+      - file: /etc/nginx/{{ r.name }}
+{% endfor %}
+
 {% for f in nginx.get('nginx_confs', ()) %}
 /etc/nginx/{{ f.name }}:
   file.managed:
