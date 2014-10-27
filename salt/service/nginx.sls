@@ -25,9 +25,7 @@ service.nginx:
     - group: root
     - mode: 0755
     - clean: True
-{% if grains['os'] == "Gentoo" %}
-    - exclude_pat: "E@^(scgi|fastcgi|uwsgi)_params|mime.types|fastcgi.conf$"
-{% endif %}
+    - exclude_pat: "E@^(scgi|fastcgi|proxy|uwsgi)_params|mime.types|fastcgi.conf$"
     - require:
 {% for f in nginx.get('nginx_confs', ()) %}
       - file: /etc/nginx/{{ f.name }}
