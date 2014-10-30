@@ -33,6 +33,9 @@
 passwd:     files
 shadow:     files
 group:      files
+{%- if grains['osmajorrelease'] in ("7",) %}
+#initgroups: files
+{%- endif %}
 
 #hosts:     db files nisplus nis dns
 hosts:      files dns
@@ -54,7 +57,7 @@ protocols:  files
 rpc:        files
 services:   files
 
-netgroup:   nisplus
+netgroup:   files
 
 publickey:  nisplus
 
