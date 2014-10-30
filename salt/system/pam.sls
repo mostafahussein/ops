@@ -22,7 +22,7 @@
 {% elif grains['os'] == "Ubuntu" %}
 /etc/pam.d/sshd:
   file.managed:
-    - source: salt://common/etc/pam.d/sshd
+    - source: salt://common/etc/pam.d/sshd.ubuntu
     - mode: 0644
     - user: root
     - group: root
