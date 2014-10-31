@@ -127,7 +127,8 @@ mount.binddev.{{ mp }}:
   cmd.run:
     - name: "echo '{{ bmp }} is mounted, but device is {{ alt_dev }}, != {{ mp }}'"
           {% endif %}
-          {% if dev != attrs.get('device') %}
+          {% if dev != attrs.get('device') and
+            dev != salt['file.stats'](attrs.get('device')).get('target') %}
 mount.binddevice.{{ mp }}:
   cmd.run:
     - name: "echo '{{ bmp }} is mounted, but device is {{ attrs.get('device') }}, != {{ dev }}'"
