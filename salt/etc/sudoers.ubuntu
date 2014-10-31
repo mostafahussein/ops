@@ -7,6 +7,9 @@
 # See the man page for details on how to write a sudoers file.
 #
 Defaults	env_reset,!fqdn
+{%- if grains['osrelease'] in ('14.04',) %}
+Defaults	mail_badpass
+{%- endif %}
 Defaults	secure_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
 # Host alias specification
