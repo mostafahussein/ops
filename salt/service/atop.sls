@@ -2,7 +2,7 @@
 
 service.atop:
   pkg.installed:
-    - name: {{ pkgs.atop | default('atop') }} 
+    - name: {{ pkgs.atop | default('atop') }}
     - refresh: False
   service.running:
     - name: atop

@@ -3,5 +3,16 @@
 0 0 * * * root /etc/atop/atop.daily
 {%- elif grains['os'] == "CentOS" -%}
 # start atop daily at midnight
+  {%- if grains['osmajorrelease'] in ('6',) %}
 0 0 * * * root /etc/rc.d/init.d/atop condrestart > /dev/null 2>&1 || :
+  {%- else %}
+0 0 * * * root /bin/systemctl try-restart atop.service > /dev/null 2>&1 || :
+  {%- endif %}
+{%- elif grains['os'] == "Ubuntu" -%}
+  {%- if grains['osrelease'] in ('14.04',) -%}
+PATH=/sbin:/usr/sbin:/bin:/usr/bin
+
+# start atop daily at midnight
+0 0 * * * root invoke-rc.d atop _cron
+  {%- endif %}
 {%- endif %}
