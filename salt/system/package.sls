@@ -138,7 +138,11 @@
     {% endfor %}
   {% endif %}
 
-  {% do pkglist.extend(("iptraf-ng", "realpath")) %}
+  {% do pkglist.extend(("iptraf-ng",)) %}
+
+  {% if grains['osmajorrelease'] in ('6',) %}
+    {% do pkglist.extend(("realpath",)) %}
+  {% endif %}
 {% endif %}
 
 {% for i in pkglist %}
