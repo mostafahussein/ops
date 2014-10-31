@@ -1,6 +1,14 @@
 {% import_yaml "common/config/packages.yaml" as pkgs with context %}
 {% import_yaml "config/smartd.yaml" as smartd with context %}
 
+{% set svc_conf = "/etc/smartd.conf" %}
+
+{% if grains['os'] == "CentOS" %}
+  {% if grains['osmajorrelease'] in ('7',) %}
+    {% set svc_conf = "/etc/smartmontools/smartd.conf" %}
+  {% endif %}
+{% endif %}
+
 service.smartd:
   pkg.installed:
     - name: {{ pkgs.smartmontools | default('smartmontools') }}
@@ -25,7 +33,7 @@ service.smartd:
     - group: root
     - mode: "0644"
     - template: jinja
-    - name: /etc/smartd.conf
+    - name: {{ svc_conf }}
     - source: salt://common/etc/smartd.conf.{{ grains['os'] | lower }}
 
 {% if grains['os'] == "Ubuntu" %}
