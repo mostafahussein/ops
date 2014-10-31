@@ -1,6 +1,8 @@
 {% import_yaml "common/config/packages.yaml" as pkgs with context %}
 {% import_yaml "config/svscan.yaml" as svscan with context %}
 
+{% set svc_name = "svscan" %}
+
 {% if grains['os'] in ("CentOS", "Gentoo") %}
 {% set svscan_dir = "/service" %}
 {% elif grains['os'] == "Ubuntu" %}
@@ -8,12 +10,16 @@
 {% endif %}
 
 {% if grains['os'] in ("CentOS",) %}
+  {% if grains['osmajorrelease'] in ('6',) %}
 /etc/init/svscan.conf:
   file.managed:
     - user: root
     - group: root
     - mode: 0644
     - source: salt://common/etc/init/svscan.conf
+  {% else %}
+    {% set svc_name = "daemontools" %}
+  {% endif %}
 {% endif %}
 
 service.svscan:
@@ -22,7 +28,7 @@ service.svscan:
     - refresh: False
 {% if svscan.services is defined and svscan.services is iterable %}
   service.running:
-    - name: svscan
+    - name: {{ svc_name }}
     - enable: True
   {% if grains['os'] == "Gentoo" %}
     - sig: "/usr/bin/svscan {{ svscan_dir }}"
