@@ -95,6 +95,18 @@
 
   {% if yum.repos is defined and
     yum.repos is iterable %}
+
+/etc/yum.repos.d:
+  file.directory:
+    - user: root
+    - group: root
+    - mode: 0755
+    - clean: True
+    - require:
+    {% for f in yum.get("repos", ()) %}
+        - file: /etc/yum.repos.d/{{ f.name }}
+    {% endfor %}
+
     {% for f in yum.get("repos", ()) %}
 /etc/yum.repos.d/{{ f.name }}:
       {% if f.source is not defined %}
