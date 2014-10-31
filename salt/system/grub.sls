@@ -1,5 +1,5 @@
 {% if grains['os'] == "CentOS" and
-  grains['osmajorrelease'][0] <= "6" %}
+  grains['osmajorrelease'][0] in ("6",) %}
 {% else %}
 
 /etc/default/grub:
