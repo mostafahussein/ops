@@ -7,6 +7,15 @@
 {% set svscan_dir = "/etc/service" %}
 {% endif %}
 
+{% if grains['os'] in ("CentOS",) %}
+/etc/init/svscan.conf:
+  file.managed:
+    - user: root
+    - group: root
+    - mode: 0644
+    - source: salt://common/etc/init/svscan.conf
+{% endif %}
+
 service.svscan:
   pkg.installed:
     - name: {{ pkgs.svscan }}
