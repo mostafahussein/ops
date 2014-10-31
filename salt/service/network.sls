@@ -100,6 +100,11 @@ service.net.{{ i }}:
         name: "lo"
   {% endif %}
 
+  {% if grains['osmajorrelease'] in ('7',) %}
+service.networkmanager:
+  service.disabled:
+    - name: NetworkManager
+  {% endif %}
 {% endif %}
 
 {% if ip.nics is defined %}
