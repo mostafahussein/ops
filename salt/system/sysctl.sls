@@ -7,6 +7,15 @@ service.sysctl:
     - mode: 755
     - user: root
     - group: root
+
+  {% if grains['osmajorrelease'] in ('7',) %}
+/usr/lib/sysctl.d/00-system.conf:
+  file.managed:
+    - mode: 644
+    - user: root
+    - group: root
+    - source: salt://common/usr/lib/sysctl.d/00-system.conf
+  {% endif %}
 {% else %}
   service.enabled:
   {% if grains['os'] == "Gentoo" %}
@@ -41,4 +50,5 @@ service.sysctl:
     - mode: 644
     - user: root
     - group: root
+    - template: jinja
     - source: salt://common/etc/sysctl.conf.{{ grains['os'] | lower }}
