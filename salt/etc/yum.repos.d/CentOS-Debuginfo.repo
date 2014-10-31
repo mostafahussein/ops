@@ -12,7 +12,7 @@
 # Note: packages in the debuginfo repo are currently not signed
 #
 
-[debug]
+[base-debuginfo]
 name=CentOS-6 - Debuginfo
 baseurl=http://debuginfo.centos.org/6/$basearch/
 gpgcheck=1
