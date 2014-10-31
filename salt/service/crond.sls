@@ -24,6 +24,7 @@ service.crond:
     - user: root
     - group: root
     - mode: 0644
+    - template: jinja
 
 {% if crond.crond_files is defined and
     crond.crond_files is iterable %}
