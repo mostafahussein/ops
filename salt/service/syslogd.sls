@@ -18,7 +18,11 @@ service.rsyslog:
 {% if grains['os'] == "Gentoo" %}
     - sig: "/usr/sbin/rsyslogd"
 {% elif grains['os'] == "Ubuntu" %}
+  {% if grains['osrelease'] in ('14.04',) %}
+    - sig: "rsyslogd"
+  {% else %}
     - sig: "rsyslogd -c5"
+  {% endif %}
 {% elif grains['os'] == "CentOS" %}
     - sig: "/sbin/rsyslogd -i /var/run/syslogd.pid -c 5"
 {% endif %}
@@ -66,6 +70,7 @@ service.rsyslog:
     - mode: 0644
     - user: root
     - group: root
+    - template: jinja
 
 /etc/rsyslog.d:
   file.directory:

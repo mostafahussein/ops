@@ -1,6 +1,12 @@
 # see "man logrotate" for details
 # rotate log files weekly
 weekly
+{%- if grains['osrelease'] in ('14.04',) %}
+
+# use the syslog group by default, since this is the owning group
+# of /var/log/syslog.
+su root syslog
+{%- endif %}
 
 # keep 4 weeks worth of backlogs
 rotate 4

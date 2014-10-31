@@ -11,7 +11,11 @@
 #################
 
 $ModLoad imuxsock # provides support for local system logging
+{%- if grains['osrelease'] in ('14.04',) %}
+$ModLoad imklog   # provides kernel logging support
+{%- else %}
 $ModLoad imklog   # provides kernel logging support (previously done by rklogd)
+{%- endif %}
 #$ModLoad immark  # provides --MARK-- message capability
 
 # provides UDP syslog reception
@@ -50,7 +54,11 @@ $PrivDropToUser syslog
 $PrivDropToGroup syslog
 
 #
+{%- if grains['osrelease'] in ('14.04',) %}
+# Where to place spool and state files
+{%- else %}
 # Where to place spool files
+{%- endif %}
 #
 $WorkDirectory /var/spool/rsyslog
 
