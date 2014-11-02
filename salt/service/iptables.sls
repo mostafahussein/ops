@@ -32,6 +32,7 @@
   {% set rules_ipset = "/etc/sysconfig/ipset" %}
   {% set rules_iptables = "/etc/sysconfig/iptables" %}
 
+  {% if grains['osmajorrelease'] in ('6',) %}
 /etc/rc.d/init.d/iptables:
   file.managed:
     - mode: 0755
@@ -39,6 +40,17 @@
     - group: root
     - source: salt://common/etc/init.d/iptables.{{ grains['os'] | lower }}
 
+  {% elif grains['osmajorrelease'] in ('7',) %}
+service.iptables-services:
+  pkg.installed:
+    - name: iptables-services
+    - refresh: False
+
+service.firewalld:
+  service:
+    - name: firewalld
+    - disabled
+  {% endif %}
 {% endif %}
 
 service.iptables:
@@ -127,7 +139,10 @@ service.ipset:
   pkg.installed:
     - name: {{ pkgs.ipset | default('ipset') }}
     - refresh: False
-{% if grains['os'] == "Gentoo" %}
+{% if grains['os'] == "CentOS" and grains['osmajorrelease'] in ('6.6') %}
+  service.disabled:
+    - name: ipset
+{% elif grains['os'] == "Gentoo" %}
   {% if do_ipset %}
   service.enabled:
     - name: ipset
