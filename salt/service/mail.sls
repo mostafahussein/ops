@@ -38,6 +38,7 @@ service.postfix:
 
 service.postfix:
   service.dead:
+    - name: postfix
     - enable: False
 
 {% endif %}
@@ -78,6 +79,7 @@ service.dovecot:
 
 service.dovecot:
   service.dead:
+    - name: dovecot
     - enable: False
 
 {% endif %}
@@ -162,6 +164,7 @@ service.imapproxy:
 
 service.imapproxy:
   service.dead:
+    - name: imapproxy
     - enable: False
 
 {% endif %}
@@ -202,6 +205,7 @@ service.spamd:
 
 service.spamd:
   service.dead:
+    - name: spamd
     - enable: False
 
 {% endif %}
