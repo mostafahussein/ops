@@ -38,6 +38,7 @@
 - /usr/*
 + /var/
 + /var/lib/
+- /var/lib/docker/*
 + /var/lib/ipset/
 + /var/lib/ipset/rules-save
 - /var/lib/ipset/*
