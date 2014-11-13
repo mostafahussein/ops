@@ -5,6 +5,7 @@ import os
 import sys
 import json
 import gzip
+import signal
 import tempfile
 import traceback
 import subprocess
@@ -14,6 +15,14 @@ from datetime import datetime
 from pprint import pprint as pprint
 
 import sandbox
+
+
+class TimeoutException(Exception):
+    pass
+
+
+def alarm_handler(signum, frame):
+    raise TimeoutException("task timeout, please check!")
 
 
 def run_rsync(cfgs, **kwargs):
@@ -40,6 +49,12 @@ def run_rsync(cfgs, **kwargs):
                      (datetime.now(), " ".join(rsync_cmd)))
         log_fp.flush()
 
+        timeout = c.get('timeout', 3600)
+
+        if not dry_run:
+            signal.signal(signal.SIGALRM, alarm_handler)
+            signal.alarm(timeout)
+
         if osp.exists(dst):
             sandbox.enable(dst)
 
@@ -51,6 +66,12 @@ def run_rsync(cfgs, **kwargs):
                                (" ".join(rsync_cmd), ret))
         except KeyboardInterrupt:
             p.terminate()
+        except TimeoutException, e:
+            p.terminate()
+            content.append(">> `%s' timeout in %ds\n" %
+                           (" ".join(rsync_cmd), timeout))
+
+        signal.alarm(0)
 
         sandbox.disable()
 
