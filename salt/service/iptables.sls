@@ -128,6 +128,7 @@ service.iptables:
     - {{ k }}: {{ v }}
             {% endif %}
           {% endfor %}
+    - save: False
         {% endif %}
       {% endfor %}
     {% endfor %}
