@@ -30,6 +30,7 @@
     - user: {{ f.user }}
     - group: {{ group }}
     - mode: 0400
+    - replace: False
   {% endfor %}
 
 {{ homedir }}/authorized_keys:

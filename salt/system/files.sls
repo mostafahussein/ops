@@ -37,6 +37,8 @@
         "{{ k }}": "{{ v }}"
             {% endfor %}
           {% endif %}
+        {% else %}
+    - replace: False
         {% endif %}
     - mode: {{ f.mode | default('0644')}}
       {% elif f.type == "recurse" %}
