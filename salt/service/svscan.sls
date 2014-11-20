@@ -92,6 +92,7 @@ service.{{ s.name }}:
     - user: root
     - group: root
     - mode: 0644
+    - replace: False
       {% else %}
   file.absent
       {% endif %}
