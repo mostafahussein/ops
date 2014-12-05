@@ -119,7 +119,7 @@ service.iptables:
     {% set action_set = {'-A': 'append', '-I': 'insert', '-D': 'delete' } %}
     {% for t in iptables.table|default(()) %}
       {% for r in t.rules|default(()) %}
-        {% if r.do_check|default(True)  %}
+        {% if r.do_check|default(True) and r.use|default(True) %}
 {{ r.name }}:
   iptables.{{ action_set[r.action|default(t.action)] }}:
     - table: {{ t.name }}
