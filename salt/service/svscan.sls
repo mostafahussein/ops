@@ -83,6 +83,7 @@ service.{{ s.name }}:
     - group: root
     - mode: 0755
     - source: {{ s.source_run }}
+    - template: jinja
     - require:
       - file: {{ svscan_dir }}/{{ s.name }}
 
