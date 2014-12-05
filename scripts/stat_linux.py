@@ -278,11 +278,15 @@ def disk_info():
                     continue
             dsk = os.statvfs(mnt)
             usage['dev'] = st_dev
-            usage['unit'] = dsk.f_bsize
+            # @todo not tested on older system
+            if dsk.f_frsize:
+                usage['unit'] = dsk.f_frsize
+            else:
+                usage['unit'] = dsk.f_bsize
             usage['used'] = dsk.f_blocks - dsk.f_bfree
             usage['total'] = dsk.f_blocks
-            #usage['itotal'] = dsk.f_files
-            #usage['iused']  = usage['itotal'] - dsk.f_ffree
+            # usage['itotal'] = dsk.f_files
+            # usage['iused']  = usage['itotal'] - dsk.f_ffree
             if dsk.f_files != 0:
                 usage['inode'] = 100 - 100 * dsk.f_ffree / dsk.f_files
             hd[mnt] = usage
@@ -302,7 +306,7 @@ def sysstat():
     _load = load_info()
     stats['load'] = _load['load']
     stats['proc']['count'] = _load['proc']
-    #stats['proc.count'] = load['proc']
+    # stats['proc.count'] = load['proc']
     stats['mem'] = mem_info()
 
     stat = stat_info()
@@ -342,4 +346,4 @@ if __name__ == '__main__':
     print json.dumps(stats, sort_keys=True, indent=4)
     print len(json.dumps(stats)), len(zlib.compress(json.dumps(stats)))
     normalize_stat(stats)
-    #print json.dumps(stats, sort_keys = True, indent = 4)
+    # print json.dumps(stats, sort_keys = True, indent = 4)
