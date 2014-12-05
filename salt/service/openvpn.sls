@@ -75,6 +75,8 @@ pkg.openvpn:
   file.managed:
     {% if f.source is defined %}
     - source: {{ f.source }}
+    {% else %}
+    - replace: False
     {% endif %}
     - user: {{ f.user | default(user) }}
     - group: {{ f.group | default(group) }}
