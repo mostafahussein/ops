@@ -40,7 +40,7 @@ service.sysctl:
   {% for setting in sysctl.settings %}
 {{ setting.name }}:
   sysctl.present:
-    - value: {{ setting.value }}
+    - value: "{{ setting.value }}"
     - config: /etc/sysctl.d/default.conf
   {% endfor %}
 {% endif %}
