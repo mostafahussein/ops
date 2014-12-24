@@ -1,6 +1,12 @@
 {% import_yaml "common/config/packages.yaml" as pkgs with context %}
 {% import_yaml "config/cpufrequtils.yaml" as cpufrequtils with context %}
 
+{% set svcname = "cpufrequtils" %}
+
+{% if grains['os'] == "Gentoo" %}
+  {% set svcname = "cpupower" %}
+{% endif %}
+
 {% set cpufreq_dir = "/sys/devices/system/cpu" %}
 {% set cpufreq_file = "cpufreq/scaling_governor" %}
 
@@ -15,17 +21,21 @@ governor.cpu{{ i }}:
 
 service.cpufrequtils:
   pkg.installed:
+  {% if grains['os'] == "Gentoo" %}
+    - name: {{ pkgs.cpupower | default('cpupower') }}
+  {% else %}
     - name: {{ pkgs.cpufrequtils | default('cpufrequtils') }}
+  {% endif %}
     - refresh: False
   service.enabled:
-    - name: cpufrequtils
+    - name: {{ svcname }}
     - reload: True
     - watch:
       - file: service.cpufrequtils
   file.managed:
   {% if grains['os'] == "Gentoo" %}
-    - name: /etc/conf.d/cpufrequtils
-    - source: salt://common/etc/conf.d/cpufrequtils
+    - name: /etc/conf.d/{{ svcname }}
+    - source: salt://common/etc/conf.d/{{ svcname }}
   {% elif grains['os'] == "Ubuntu" %}
     - name: /etc/default/cpufrequtils
     - source: salt://common/etc/default/cpufrequtils
@@ -46,7 +56,7 @@ service.loadcpufreq:
 
 service.cpufrequtils:
   service.disabled:
-    - name: cpufrequtils
+    - name: {{ svcname }}
   file.absent:
     - name: /etc/default/cpufrequtils
 
