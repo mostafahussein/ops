@@ -27,7 +27,7 @@ if __name__ == "__main__":
 
     try:
         try:
-            cmd = ['megacli', '-LDInfo', '-Lall', '-aALL']
+            cmd = ['megacli', '-LDInfo', '-Lall', '-aALL', '-NoLog']
             ret, ld_info = exec_cmd(cmd)
             ld_status = re.findall('state\s+:\s(.+)', ld_info, re.I)
         except:
