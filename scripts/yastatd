@@ -17,6 +17,8 @@ import time
 import json
 import yaml
 import getopt
+import syslog
+import logging
 import threading
 import traceback
 import multiprocessing
@@ -32,17 +34,28 @@ from utils import check_dir
 from utils import ops_log_open
 from stat_linux import sysstat
 
+# pylint: disable=bare-except
 try:
     from importlib import import_module
 except:
     import_module = __import__
+# pylint: enable=bare-except
 
 program = sys.argv[0]
 
 dir_spool = "/var/spool/yastatd"
+dir_json = 'json'
 
 do_exit = threading.Event()
 do_debug = False
+
+STATE_OK = 0
+STATE_WARNING = 1
+STATE_CRITICAL = 2
+STATE_UNKNOWN = 3
+
+SECOND = 1
+MINUTE = 60 * SECOND
 
 
 def usage(code, msg=''):
@@ -59,7 +72,9 @@ def run_stat(**kwargs):
             continue
         module_name = func_name = "stat_%s" % k
         module = import_module(module_name)
+        # pylint: disable=star-args
         stats[k] = getattr(module, func_name)(**v)
+        # pylint: enable=star-args
     stats['timestamp'] = int(time.time())
 
     return stats
@@ -69,7 +84,13 @@ class stat_thread(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
         self.name = "stat_thread"
-        self.log = ops_log_open(syslog={'ident': 'yastatd'})
+        if sys.hexversion < 0x2070000:
+            self.log = ops_log_open(level=logging.INFO)
+            syslog.openlog('yastatd', syslog.LOG_PID, syslog.LOG_LOCAL3)
+        else:
+            self.log = ops_log_open(level=logging.INFO,
+                                    syslog={'ident': "yastatd",
+                                            'level': logging.INFO})
 
     def run(self):
         try:
@@ -78,6 +99,12 @@ class stat_thread(threading.Thread):
                                         "r"))
         except Exception, e:
             yastat_cfg = {}
+
+        if 'nagios' in yastat_cfg:
+            nagios_cfg = yastat_cfg.pop('nagios')
+        else:
+            nagios_cfg = {}
+
         try:
             check_dir(0755, dir_spool)
             os.chdir(dir_spool)
@@ -85,9 +112,17 @@ class stat_thread(threading.Thread):
             self.log.critical("%s, %s" % (e, traceback.format_exc()))
         time_current = int(time.time())
         time_last = time_next = time_current
+
+        # calculate every check item's next check time
+        check_time_next = {}
+        stats_last = {}
+        for k, v in nagios_cfg.iteritems():
+            check_time_next[k] = time_current
+            if v.get('is_counter'):
+                stats_last[k] = None
+
         while not do_exit.is_set():
             try:
-                dir_json = 'json'
                 check_dir(0755, dir_json)
 
                 time_current = int(time.time())
@@ -106,22 +141,129 @@ class stat_thread(threading.Thread):
                     json_datetime = datetime.fromtimestamp(timestamp)
                     json_date = json_datetime.strftime('%Y%m%d')
                     json_time = json_datetime.strftime('%H%M%S')
-                    dir_json = osp.join(dir_json, json_date)
-                    check_dir(0755, dir_json)
-                    json_file = osp.join(dir_json,
+                    json_dir = osp.join(dir_json, json_date)
+                    check_dir(0755, json_dir)
+                    json_file = osp.join(json_dir,
                                          '.'.join((json_time, 'json')))
                     json_file_tmp = '.'.join((json_file, 'tmp'))
+
+                    nagios_rets = {}
+                    for k, v in nagios_cfg.iteritems():
+                        if time_current >= check_time_next[k]:
+                             r = self.run_check(k, v,
+                                                stats,
+                                                stats_last,
+                                                check_time_next)
+                             if r: nagios_rets.update(r)
+
+                    if nagios_rets:
+                        if do_debug:
+                            print json.dumps(nagios_rets, indent=2)
+                        else:
+                            syslog.syslog(syslog.LOG_NOTICE,
+                                          json.dumps(nagios_rets))
+                            pass
+
                     if do_debug:
-                        print json.dumps({timestamp: stats}, indent=2)
+                        #print json.dumps({timestamp: stats}, indent=2)
+                        pass
                     else:
                         json.dump({timestamp: stats},
-                                   open(json_file_tmp, 'w+'),)
+                                  open(json_file_tmp, 'w+'),)
                         os.rename(json_file_tmp, json_file)
                     time_last = time_current
-                    time_next = time_current + 60
+                    time_next = time_current + MINUTE
             except Exception, e:
                 self.log.critical("%s, %s" % (e, traceback.format_exc()))
-            time.sleep(1.0)
+            time.sleep(SECOND)
+
+    def run_check(self, kind, cfg, stats, stats_last, check_time_next):
+        w_t = cfg.get('warning')
+        c_t = cfg.get('critical')
+        interval = cfg.get('interval')
+
+        time_current = stats['timestamp']
+
+        check_func = getattr(stat_thread, 'check_{0}'.format(kind))
+
+        r = None
+        stat = stats[kind]
+        if cfg.get('is_counter'):
+            stat_last = stats_last[kind]
+            if stat_last:
+                time_last = stat_last['timestamp']
+                timedelta = time_current - time_last
+                r = check_func(stat, stat_last, timedelta, w_t, c_t)
+            else:
+                # do nothing
+                pass
+            stats_last[kind] = deepcopy(stat)
+            stats_last[kind]['timestamp'] = time_current
+        else:
+            r = check_func(stat, w_t, c_t)
+
+        check_time_next[kind] += interval * MINUTE
+        return {kind: r} if r else None
+
+    # @todo check per cpu usage
+    @staticmethod
+    def check_cpu(stat, stat_last, timedelta,
+                  threshold_warning, threshold_critical):
+        # pylint: disable=too-many-locals
+        ret = STATE_OK
+        msg = []
+        try:
+            cpu_count = stat['count']
+            cpu_current = stat['stat']
+            cpu_last = stat_last['stat']
+            # cpu average every second
+            _f = lambda x: x / timedelta / cpu_count
+            cpu_sys = _f(cpu_current['sys'] - cpu_last['sys'])
+            cpu_user = _f(cpu_current['user'] - cpu_last['user'])
+            cpu_idle = _f(cpu_current['idle'] - cpu_last['idle'])
+            cpu_iowait = _f(cpu_current['iowait'] - cpu_last['iowait'])
+            msg.append("CPU Usage (user/sys/idle/wait): {0}%/{1}%/{2}%/{3}%"
+                       .format(cpu_user, cpu_sys, cpu_idle, cpu_iowait))
+            cpu_usage = 100 - cpu_idle - cpu_iowait
+            if cpu_usage >= threshold_warning:
+                ret = STATE_WARNING
+            elif cpu_usage >= threshold_critical:
+                ret = STATE_CRITICAL
+        except Exception, e:
+            ret = STATE_UNKNOWN
+            msg.append('{0}, {1}'.format(e, traceback.format_exc()))
+
+        return (ret, ', '.join(msg))
+
+    @staticmethod
+    def check_disk(stat, threshold_warning, threshold_critical):
+        ret = STATE_OK
+        msg = []
+        try:
+            for mopt in stat:
+                _ds = stat[mopt]
+                _percent = int(_ds['used'] * 1.0 / _ds['total'] * 100)
+                _unit = _ds['unit']
+                # Byte to GByte
+                # pylint: disable=cell-var-from-loop
+                _f = lambda x: int(x * _unit * 1.0 / 1024 / 1024 / 1024)
+                # pylint: enable=cell-var-from-loop
+                _total = _f(_ds['total'])
+                if 'inode' in _ds:
+                    _inode = "{0}%".format(_ds.get('inode'))
+                else:
+                    _inode = 'N/A'
+                msg.append("{0} ({1}G * {2}%, inode {3})"
+                           .format(mopt, _total, _percent, _inode))
+                if _percent >= threshold_warning and ret != STATE_CRITICAL:
+                    ret = STATE_WARNING
+                elif _percent >= threshold_critical:
+                    ret = STATE_CRITICAL
+        except Exception, e:
+            ret = STATE_UNKNOWN
+            msg.append('{0}, {1}'.format(e, traceback.format_exc()))
+
+        return (ret, ' '.join(("DISK Usage:", ', '.join(msg))))
 
 
 class zmq_thread(threading.Thread):
@@ -131,7 +273,7 @@ class zmq_thread(threading.Thread):
 
     def run(self):
         while not do_exit.is_set():
-            time.sleep(1.0)
+            time.sleep(SECOND)
 
 if __name__ == "__main__":
     try:
