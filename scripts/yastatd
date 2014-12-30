@@ -17,6 +17,7 @@ import time
 import json
 import yaml
 import getopt
+import random
 import syslog
 import logging
 import threading
@@ -160,6 +161,7 @@ class stat_thread(threading.Thread):
                         if do_debug:
                             print json.dumps(nagios_rets, indent=2)
                         else:
+                            nagios_rets['rand'] = random.randint(0, 1000)
                             syslog.syslog(syslog.LOG_NOTICE,
                                           json.dumps(nagios_rets))
                             pass
