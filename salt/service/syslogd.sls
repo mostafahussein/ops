@@ -1,12 +1,26 @@
 {% import_yaml "common/config/packages.yaml" as pkgs with context %}
 {% import_yaml "config/syslogd.yaml" as syslogd with context %}
 
-{% if grains['os'] == "Ubuntu" %}
+{% if grains['os'] == "Gentoo" %}
+  {% set svc_conf = "/etc/conf.d/rsyslog" %}
+{% elif grains['os'] == "Ubuntu" %}
+  {% set svc_conf = "/etc/default/rsyslog" %}
 pkg.rsyslog-relp:
   pkg.installed:
     - name: rsyslog-relp
     - refresh: False
+{% elif grains['os'] == "CentOS" %}
+  {% set svc_conf = "/etc/sysconfig/rsyslog" %}
 {% endif %}
+
+{{ svc_conf }}:
+  file.managed:
+    - source:
+      - salt://common{{ svc_conf }}
+    - mode: 0644
+    - user: root
+    - group: root
+    - template: jinja
 
 service.rsyslog:
   pkg.installed:
@@ -30,13 +44,14 @@ service.rsyslog:
 {% for f in syslogd.get('syslogd_confs', ()) %}
       - file: {{ f.name }}
 {% endfor %}
+      - file: {{ svc_conf }}
 
 {% for f in syslogd.get('syslogd_confs', ()) %}
 {{ f.name }}:
   {% if f.source is defined %}
   file.managed:
     - source: {{ f.source }}
-    - mode: 0644
+    - mode: {{ f.mode|default('0644') }}
     - user: root
     - group: root
     - template: jinja
