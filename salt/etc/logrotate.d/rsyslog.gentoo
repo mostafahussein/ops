@@ -1,5 +1,5 @@
 /var/log/syslog
-{%- if attrs.daily is defined %}
+{%- if attrs is defined and attrs.daily is defined %}
 {{ attrs.daily | join('\n') }}
 {%- endif %}
 {
@@ -7,7 +7,6 @@
 	daily
 	missingok
 	notifempty
-	delaycompress
 	compress
 	postrotate
 		test -r /run/rsyslogd.pid && kill -HUP $(cat /run/rsyslogd.pid) &>/dev/null
@@ -24,7 +23,7 @@
 /var/log/user.log
 /var/log/debug.log
 /var/log/messages
-{%- if attrs.weekly is defined %}
+{%- if attrs is defined and attrs.weekly is defined %}
 {{ attrs.weekly | join('\n') }}
 {%- endif %}
 {
@@ -33,7 +32,6 @@
 	missingok
 	notifempty
 	compress
-	delaycompress
 	sharedscripts
 	postrotate
 		test -r /run/rsyslogd.pid && kill -HUP $(cat /run/rsyslogd.pid) &>/dev/null
