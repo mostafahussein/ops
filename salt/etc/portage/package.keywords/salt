@@ -4,3 +4,4 @@ dev-python/pyasn1-modules ~amd64
 dev-python/pycryptopp ~amd64
 dev-python/python-ldap ~amd64
 dev-python/pyyaml ~amd64
+dev-python/timelib ~amd64
