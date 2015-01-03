@@ -3,4 +3,8 @@
 # Syslogd options are deprecated since rsyslog v3.
 # If you want to use them, switch to compatibility mode 2 by "-c 2"
 # See rsyslogd(8) for more details
+{%- if grains['osmajorrelease'][0] == "6" %}
 SYSLOGD_OPTIONS="{{ syslogd.syslogd_options|default('-c 5') }}"
+{%- elif grains['osmajorrelease'][0] == "7" %}
+SYSLOGD_OPTIONS="{{ syslogd.syslogd_options|default() }}"
+{%- endif %}
