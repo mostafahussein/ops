@@ -33,6 +33,7 @@ if sys.version_info < (2, 6):
 from utils import check_dir
 from utils import ops_log_open
 from stat_linux import sysstat
+from utils.sistr import sistr
 
 # pylint: disable=bare-except
 try:
@@ -246,19 +247,19 @@ class stat_thread(threading.Thread):
                 _unit = _ds['unit']
                 # Byte to GByte
                 # pylint: disable=cell-var-from-loop
-                _f = lambda x: int(x * _unit * 1.0 / 1024 / 1024 / 1024)
+                _f = lambda x: sistr(x * _unit, prec=2)
                 # pylint: enable=cell-var-from-loop
                 _total = _f(_ds['total'])
                 if 'inode' in _ds:
                     _inode = "{0}%".format(_ds.get('inode'))
                 else:
                     _inode = 'N/A'
-                msg.append("{0} ({1}G * {2}%, inode {3})"
+                msg.append("{0} ({1} * {2}%, inode {3})"
                            .format(mopt, _total, _percent, _inode))
-                if _percent >= threshold_warning and ret != STATE_CRITICAL:
-                    ret = STATE_WARNING
-                elif _percent >= threshold_critical:
+                if _percent >= threshold_critical:
                     ret = STATE_CRITICAL
+                elif _percent >= threshold_warning and ret != STATE_CRITICAL:
+                    ret = STATE_WARNING
         except Exception, e:
             ret = STATE_UNKNOWN
             msg.append('{0}, {1}'.format(e, traceback.format_exc()))
