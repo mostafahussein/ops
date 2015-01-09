@@ -15,6 +15,7 @@ service.uwsgi.{{ s.name }}:
     - sig: "\"\\-\\-pidfile /var/run/uwsgi_{{ s.name }}/{{ s.name }}.pid\""
     - watch:
       - file: service.uwsgi.{{ s.name }}
+      - file: /etc/init.d/uwsgi.{{ s.name }}
   file.managed:
     - name: /etc/conf.d/uwsgi.{{ s.name }}
     - source: salt://common/etc/conf.d/uwsgi
@@ -24,5 +25,11 @@ service.uwsgi.{{ s.name }}:
     - template: jinja
     - defaults:
         s: {{ s }}
+
+/etc/init.d/uwsgi.{{ s.name }}:
+  file.symlink:
+    - user: root
+    - group: root
+    - target: uwsgi
   {% endfor %}
 {% endif %}
