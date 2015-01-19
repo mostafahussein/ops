@@ -54,9 +54,14 @@ pkg.openvpn:
     - user: {{ user }}
     - group: {{ group }}
     - template: jinja
-    {% if f.location is defined %}
+    {% if f.attrs is defined or f.location is defined %}
     - defaults:
-       location: {{ f.location }}
+      {% if f.attrs is defined %}
+        attrs: {{ f.attrs }}
+      {% endif %}
+      {% if f.location is defined %}
+        location: {{ f.location }}
+      {% endif %}
     {% endif %}
   {% else %}
   file.absent
@@ -75,6 +80,10 @@ pkg.openvpn:
   file.managed:
     {% if f.source is defined %}
     - source: {{ f.source }}
+      {% if f.attrs is defined %}
+    - defaults:
+        attrs: {{ f.attrs }}
+      {% endif %}
     {% else %}
     - replace: False
     {% endif %}
