@@ -36,6 +36,7 @@
 {{ homedir }}/authorized_keys:
   file.managed:
     - source: salt://common/etc/ssh/authorized_keys
+    - makedirs: True
     - mode: 0400
     - user: {{ f.user }}
     - group: {{ group }}
