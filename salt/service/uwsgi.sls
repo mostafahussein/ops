@@ -12,7 +12,7 @@ service.uwsgi.{{ s.name }}:
   service.running:
     - name: uwsgi.{{ s.name }}
     - enable: True
-    - sig: "\"\\-\\-pidfile /var/run/uwsgi_{{ s.name }}/{{ s.name }}.pid\""
+    - sig: "\\-\\-pidfile /var/run/uwsgi_{{ s.name }}/{{ s.name }}.pid"
     - watch:
       - file: service.uwsgi.{{ s.name }}
       - file: /etc/init.d/uwsgi.{{ s.name }}
