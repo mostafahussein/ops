@@ -59,24 +59,22 @@ telinit q:
     {% endif %}
   {% endfor %}
 
-{% endif %}
+  {% set services = {
+    'boot': [
+      'bootmisc', 'consolefont', 'fsck', 'hostname', 'hwclock', 'keymaps',
+      'localmount', 'loopback', 'modules', 'mtab', 'net.lo', 'procfs', 'root',
+      'swap', 'swapfiles', 'sysctl', 'termencoding', 'tmpfiles.setup',
+      'urandom'],
+    'default': [],
+    'nonetwork': ['local',],
+    'shutdown': ['killprocs', 'mount-ro', 'savecache'],
+    'single': [],
+    'sysinit': ['devfs', 'dmesg', 'sysfs', 'tmpfiles.dev', 'udev', 'udev-mount'],
+  } %}
 
-{% set services = {
-  'boot': [
-    'bootmisc', 'consolefont', 'fsck', 'hostname', 'hwclock', 'keymaps',
-    'localmount', 'loopback', 'modules', 'mtab', 'net.lo', 'procfs', 'root',
-    'swap', 'swapfiles', 'sysctl', 'termencoding', 'tmpfiles.setup',
-    'urandom'],
-  'default': [],
-  'nonetwork': ['local',],
-  'shutdown': ['killprocs', 'mount-ro', 'savecache'],
-  'single': [],
-  'sysinit': ['devfs', 'dmesg', 'sysfs', 'tmpfiles.dev', 'udev', 'udev-mount'],
-} %}
-
-{% if lvm.enabled|default(False) %}
-  {% do services['boot'].append('lvm') %}
-{% endif %}
+  {% if lvm.enabled|default(False) %}
+    {% do services['boot'].append('lvm') %}
+  {% endif %}
 
 /etc/runlevels:
   file.directory:
@@ -85,31 +83,34 @@ telinit q:
     - mode: 0755
     - clean: True
     - require:
-{% for r in services.keys() %}
+  {% for r in services.keys() %}
         - file: /etc/runlevels/{{ r }}
-{% endfor %}
+  {% endfor %}
 
-{% for r,v in services.iteritems() %}
-  {% for s in v %}
+  {% for r,v in services.iteritems() %}
+    {% for s in v %}
 /etc/runlevels/{{ r }}/{{ s }}:
   file.symlink:
     - user: root
     - group: root
     - target: /etc/init.d/{{ s }}
-  {% endfor %}
+    {% endfor %}
 
 /etc/runlevels/{{ r }}:
   file.directory:
     - user: root
     - group: root
     - mode: 0755
-  {% if r not in ("default",) %}
+    {% if r not in ("default",) %}
     - clean: True
-  {% endif %}
-  {% if v %}
+    {% endif %}
+    {% if v %}
     - require:
-    {% for s in v %}
+      {% for s in v %}
         - file: /etc/runlevels/{{ r }}/{{ s }}
-    {% endfor %}
-  {% endif %}
-{% endfor %}
+      {% endfor %}
+    {% endif %}
+  {% endfor %}
+
+{% endif %}
+
