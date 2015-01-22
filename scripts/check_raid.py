@@ -5,6 +5,7 @@
 import os
 import re
 import sys
+import getopt
 import syslog
 import socket
 import traceback
@@ -19,27 +20,52 @@ from notify import send_mail
 
 if __name__ == "__main__":
     if sys.hexversion < 0x2070000:
-        syslog.openlog('megacli', syslog.LOG_PID, syslog.LOG_LOCAL3)
+        syslog.openlog('check_raid', syslog.LOG_PID, syslog.LOG_LOCAL3)
     else:
-        syslog.openlog(ident='megacli',
+        syslog.openlog(ident='check_raid',
                        logoption=syslog.LOG_PID,
                        facility=syslog.LOG_LOCAL3)
 
+    dev_dict = {
+        'lsi': {
+            'cmd': ('megacli', '-LDInfo', '-Lall', '-aALL', '-NoLog'),
+            'rule': 'state\s+:\s(.+)',
+            'ok': 'Optimal',
+        },
+        'hpa': {
+            'cmd': ('hpacucli', 'ctrl', 'all', 'show', 'status'),
+            'rule': 'Status:\s(.+)',
+            'ok': 'OK',
+        },
+    }
+
     try:
         try:
-            cmd = ['megacli', '-LDInfo', '-Lall', '-aALL', '-NoLog']
-            ret, ld_info = exec_cmd(cmd)
-            ld_status = re.findall('state\s+:\s(.+)', ld_info, re.I)
-        except:
-            ld_info = (traceback.format_exc(),)
+            k_dev = None
+            ld_status = None
+            opts, args = getopt.getopt(sys.argv[1:], 'd:')
+            for opt, arg in opts:
+                if opt in ('-d'):
+                    if not dev_dict.get(arg):
+                        raise Exception('Unsupported device {0}'.format(arg))
+                    k_dev = arg
 
-        if not all(i == "Optimal" for i in ld_status):
+            cmd = dev_dict[k_dev]['cmd']
+            ret, ld_info = exec_cmd(cmd)
+            ld_status = re.findall(dev_dict[k_dev]['rule'], ld_info, re.I)
+        except getopt.error, e:
+            ld_info = traceback.format_exc()
+        except:
+            ld_info = traceback.format_exc()
+
+        if not (ld_status and \
+            all(i == dev_dict[k_dev]['ok'] for i in ld_status)):
             syslog.syslog(syslog.LOG_ERR,
                           "virtual disk is not in optimal state")
             hostname = socket.getfqdn()
-            subject = u'[{{ raid.conf.subject }}] 主机（%s）检测到 RAID 设备故障' % (hostname,)
+            subject = u'[{{ raid.subject }}] 主机（%s）检测到 RAID 设备故障' % (hostname,)
             fromaddr = "root@%s" % (hostname,)
-            toaddr = {{ raid.conf.toaddr }}
+            toaddr = {{ raid.toaddr }}
             send_mail(fromaddr, toaddr, subject, ld_info, priority=1)
         else:
             syslog.syslog("virtual disk state is ok")
