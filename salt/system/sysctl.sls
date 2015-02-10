@@ -23,9 +23,6 @@ service.sysctl:
   {% elif grains['os'] == "Ubuntu" %}
     - name: procps
   {% endif %}
-    - watch:
-      - file: /etc/sysctl.conf
-      - file: /etc/sysctl.d/default.conf
 {% endif %}
 
 /etc/sysctl.d/default.conf:
