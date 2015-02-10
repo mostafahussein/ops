@@ -30,18 +30,22 @@ pkg.salt-master:
 {% endif %}
 
 service.salt-minion:
+{% if salt.minion_running|default(False) %}
   service.running:
-    - name: salt-minion
     - enable: True
-{% if grains['os'] == "Gentoo" %}
+  {% if grains['os'] == "Gentoo" %}
     - sig: "/usr/lib/python-exec/python2.7/salt-minion --log-level"
-{% else %}
+  {% else %}
     - sig: "/usr/bin/python /usr/bin/salt-minion"
-{% endif %}
+  {% endif %}
     - watch:
-{% for f in minion_confs %}
+  {% for f in minion_confs %}
       - file: /etc/salt/minion.d/{{ f }}.conf
-{% endfor %}
+  {% endfor %}
+{% else %}
+  service.enabled:
+{% endif %}
+    - name: salt-minion
 
 /etc/salt/minion.d:
   file.directory:
