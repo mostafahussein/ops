@@ -121,11 +121,12 @@ mount.bind.{{ bmp }}:
     - name: "echo '{{ bmp }} isn't mounted.'"
         {% else %}
           {% set attrs = mactives[bmp] %}
+          {% set alt_rdev = mactives[mp]['device'] %}
           {% set alt_dev = attrs.get('alt_device') %}
-          {% if alt_dev != mp %}
+          {% if alt_dev != mp and alt_dev != alt_rdev %}
 mount.binddev.{{ mp }}:
   cmd.run:
-    - name: "echo '{{ bmp }} is mounted, but device is {{ alt_dev }}, != {{ mp }}'"
+    - name: "echo '{{ bmp }} is mounted, but device is {{ alt_dev }}, != [{{ mp }}|{{ alt_rdev }}]'"
           {% endif %}
           {% if dev != attrs.get('device') and
             dev != salt['file.stats'](attrs.get('device')).get('target') %}
@@ -149,9 +150,15 @@ mount.binddevice.{{ mp }}:
 
 {% for dmp in duplicated_mps %}
   {% set mp, mc = dmp.split() %}
+    {% if mp == '/proc/sys/fs/binfmt_misc' and
+      mc == '2' and
+      grains['os'] in ("CentOS",) and
+      grains['osmajorrelease'][0] in ("7",) %}
+    {% else %}
 mount.duplicated.{{ mp }}:
   cmd.run:
     - name: 'echo "{{ mp }} is mounted by {{ mc }} times, please fix!"'
+    {% endif %}
 {% endfor %}
 
 /etc/fstab:
@@ -164,7 +171,7 @@ mount.duplicated.{{ mp }}:
 
 /mnt/{{ grains['os'] | lower }}:
   file.directory:
-{% if grains['os'] == "CentOS" %}
+{% if grains['os'] in ("CentOS",) and grains['osmajorrelease'] in ("6",) %}
     - mode: 0555
 {% else %}
     - mode: 0755
