@@ -30,7 +30,7 @@
   {% elif grains['os'] in ("Ubuntu",) %}
     - exclude_pat: "E@^bash_completion\\.sh$"
   {% else %}
-    - exclude_pat: "E@^(colorls\\.c?sh|glib2\\.c?sh|lang\\.c?sh|less\\.c?sh|vim\\.c?sh|which2\\.c?sh)$"
+    - exclude_pat: "E@^(256term\\.c?sh|colorgrep\\.c?sh|colorls\\.c?sh|glib2\\.c?sh|lang\\.c?sh|less\\.c?sh|vim\\.c?sh|which2\\.c?sh)$"
   {% endif %}
 {% endif %}
 {% if profile_helpers %}
