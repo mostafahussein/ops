@@ -1,4 +1,5 @@
 app-admin/salt ~amd64
+dev-python/m2crypto ~amd64
 dev-python/msgpack ~amd64
 dev-python/pyasn1-modules ~amd64
 dev-python/pycryptopp ~amd64
