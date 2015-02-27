@@ -1,10 +1,22 @@
 {% import_yaml "common/config/packages.yaml" as pkgs with context %}
 {% import_yaml "config/mongodb.yaml" as mongodb with context %}
 
+{% if mongodb %}
+
 pkg.mongodb:
   pkg.installed:
     - name: {{ pkgs.mongodb | default('mongodb') }}
     - refresh: False
+
+{% else %}
+
+  {% set mongodb = {} %}
+
+#pkg.mongodb:
+#  pkg.removed:
+#    - name: {{ pkgs.mongodb | default('mongodb') }}
+
+{% endif %}
 
 {% for t in mongodb.get('mongodb_srvs', ()) %}
 service.mongodb.{{ t.name }}:
@@ -12,9 +24,9 @@ service.mongodb.{{ t.name }}:
     - name: {{ t.name }}
     - enable: True
   {% if grains['os'] == "Gentoo" %}
-    - sig: "/usr/bin/mongod --port {{ t.port }}"
+    - sig: "/usr/bin/mongod --config /etc/{{ t.name }}.conf"
     - watch:
-      - file: /etc/conf.d/{{ t.name }}
+      - file: /etc/{{ t.name }}.conf
     {% if t.name != "mongodb" %}
       - file: /etc/init.d/{{ t.name }}
   file.symlink:
@@ -25,17 +37,23 @@ service.mongodb.{{ t.name }}:
     {% endif %}
 
 /etc/conf.d/{{ t.name }}:
+  file.absent
+
+/etc/{{ t.name }}.conf:
   file.managed:
-    - source: salt://common/etc/conf.d/mongodb
+    - source: salt://common/etc/mongodb.conf
     - mode: 644
     - user: root
     - group: root
     - template: jinja
     - defaults:
+        name: {{ t.name }}
         port: {{ t.port | default('27017') }}
         run: {{ t.run | default('/var/run/mongodb') }}
         data: {{ t.data }}
-        options: {{ t.options | default('--journal') }}
+    {% if t.replset is defined %}
+        replset: {{ t.replset }}
+    {% endif %}
   {% endif %}
 {% endfor %}
 
