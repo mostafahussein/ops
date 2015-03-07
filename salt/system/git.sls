@@ -2,7 +2,8 @@
 
 {% if git.dirs is iterable %}
   {% for d in git.dirs %}
-    {% set git_cmd = 'git -C %s status -s'|format(d) %}
+    {# set git_cmd = 'git -C %s status -s'|format(d) #}
+    {% set git_cmd = 'git --work-tree=%s --git-dir=%s/.git status -s'|format(d, d ) %}
     {% set git_status = salt['cmd.run_all'](git_cmd, env={'LC_ALL': 'en_US.UTF-8'}) %}
     {% if git_status.get('retcode') != 0 %}
       {% set git_result = "`%s' failed w/ %d"|format(git_cmd, git_status.get('retcode')) %}
