@@ -65,19 +65,21 @@ service.iptables:
     - name: {{ rules_iptables }}
 {% else %}
     - enabled
+  {% if False %}
     - reload: True
     - watch:
       - file: service.iptables
-  {% if grains['os'] == "Gentoo" %}
-      - file: /etc/conf.d/iptables
-  {% elif grains['os'] == "CentOS" %}
-      - file: /etc/sysconfig/iptables-config
-  {% endif %}
-  {% if do_ipset %}
-      - file: {{ rules_ipset }}
     {% if grains['os'] == "Gentoo" %}
+      - file: /etc/conf.d/iptables
+    {% elif grains['os'] == "CentOS" %}
+      - file: /etc/sysconfig/iptables-config
+    {% endif %}
+    {% if do_ipset %}
+      - file: {{ rules_ipset }}
+      {% if grains['os'] == "Gentoo" %}
     - require:
       - service: service.ipset
+      {% endif %}
     {% endif %}
   {% endif %}
   file.managed:
