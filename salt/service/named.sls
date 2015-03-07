@@ -42,12 +42,18 @@ sysconfig.named:
     - group: root
     - template: jinja
 
+{% set named_confs = [] %}
 {% for f in named.get('named_confs', ()) %}
-  {% if f.op is not defined %}
-    {% set fop = "managed" %}
-  {% else %}
-    {% set fop = f.op %}
+  {% do named_confs.append(f) %}
+  {% if f.op|default("managed") == "directory" and f.configs is defined %}
+    {% for c in f.configs %}
+      {% do named_confs.append(c) %}
+    {% endfor %}
   {% endif %}
+{% endfor %}
+
+{% for f in named_confs %}
+  {% set fop = f.op|default("managed") %}
 {{ f.name }}:
   file.{{ fop }}:
     - user: {{ f.user | default('root') }}
@@ -62,6 +68,13 @@ sysconfig.named:
     - template: jinja
   {% elif fop == "directory" %}
     - mode: {{ f.mode | default('0751') }}
+    - clean: {{ f.clean| default(False) }}
+    {% if f.configs is defined %}
+    - require:
+      {% for c in f.configs %}
+      - file: {{ c.name }}
+      {% endfor %}
+    {% endif %}
     {% if f.makedirs is defined %}
     - makedirs: {{ f.makedirs }}
     {% endif %}
