@@ -107,6 +107,11 @@ class stat_thread(threading.Thread):
         else:
             nagios_cfg = {}
 
+        if 'domain' in yastat_cfg:
+            domain = yastat_cfg.pop('domain')
+        else:
+            domain = None
+
         try:
             check_dir(0755, dir_spool)
             os.chdir(dir_spool)
@@ -163,6 +168,8 @@ class stat_thread(threading.Thread):
                             print json.dumps(nagios_rets, indent=2)
                         else:
                             nagios_rets['rand'] = random.randint(0, 1000)
+                            if domain:
+                                nagios_rets['domain'] = domain
                             syslog.syslog(syslog.LOG_NOTICE,
                                           json.dumps(nagios_rets))
                             pass
