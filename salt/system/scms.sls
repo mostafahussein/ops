@@ -2,7 +2,7 @@
 
 {% set svn_dirs = [] %}
 {% set git_dirs = [] %}
-{% if scms.dirs and scms.dirs is iterable %}
+{% if scms.dirs is defined and scms.dirs is iterable %}
   {% for d in scms.dirs %}
     {% if d.type == "svn" %}
       {% do svn_dirs.append(d.name) %}
