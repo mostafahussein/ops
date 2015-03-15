@@ -14,17 +14,7 @@ pkg.openvpn:
     - name: {{ pkgs.openvpn | default('openvpn') }}
     - refresh: False
 
-{#
-/etc/openvpn:
-  file.recurse:
-    - source: salt://etc/openvpn/common
-    - exclude_pat: .svn
-    - include_empty: True
-    - dir_mode: '0755'
-    - file_mode: '0400'
-    - user: {{ user }}
-    - group: {{ group }}
-#}
+{% set vpn_requires = [] %}
 
 {% for f in openvpn.get('openvpn_scripts', ()) %}
 {{ f.name }}:
@@ -42,6 +32,9 @@ pkg.openvpn:
        location: {{ f.location }}
     {% endif %}
   {% endif %}
+
+  {% do vpn_requires.append(f.name) %}
+
 {% endfor %}
 
 
@@ -63,6 +56,9 @@ pkg.openvpn:
         location: {{ f.location }}
       {% endif %}
     {% endif %}
+
+    {% do vpn_requires.append(f.name) %}
+
   {% else %}
   file.absent
   {% endif %}
@@ -70,12 +66,14 @@ pkg.openvpn:
 
 {% for f in openvpn.get('openvpn_files', ()) %}
   {% if f.type == "dir" %}
+    {% do vpn_requires.append(f.name) %}
 {{ f.name }}:
   file.directory:
     - user: {{ user }}
     - group: {{ group }}
     - mode: 0700
   {% elif f.type == "file" %}
+    {% do vpn_requires.append(f.name) %}
 {{ f.name }}:
   file.managed:
     {% if f.source is defined %}
@@ -92,6 +90,7 @@ pkg.openvpn:
     - mode: {{ f.mode | default('0400') }}
     - template: jinja
   {% elif f.type == "symlink" %}
+    {% do vpn_requires.append(f.name) %}
 {{ f.name }}:
   file.symlink:
     - target: {{ f.target }}
@@ -106,6 +105,7 @@ pkg.openvpn:
       {% endfor %}
     {% endif %}
     {% for d in ccds.ccd_dirs %}
+      {% do vpn_requires.append(d.dir) %}
 {{ d.dir }}:
   file.directory:
     - user: {{ user }}
@@ -165,4 +165,20 @@ service.{{ f.name }}:
   service.disabled:
   {% endif %}
     - name: {{ f.name }}
+{% endfor %}
+
+/etc/openvpn:
+  file.directory:
+    - user: root
+    - group: root
+    - mode: 0755
+    - clean: True
+{% if grains['os'] in ('Gentoo',) %}
+    - exclude_pat: "E@^(\\.keep_net-misc_openvpn-0|(up|down)\\.sh)$"
+{% elif grains['os'] in ('Ubuntu',) %}
+    - exclude_pat: "update-resolv-conf"
+{% endif %}
+    - require:
+{% for f in vpn_requires %}
+      - file: {{ f }}
 {% endfor %}
