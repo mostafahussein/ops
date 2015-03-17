@@ -42,8 +42,10 @@ service.salt-minion:
   {% for f in minion_confs %}
       - file: /etc/salt/minion.d/{{ f }}.conf
   {% endfor %}
-{% else %}
+{% elif salt.minion_enabled|default(False)  %}
   service.enabled:
+{% else %}
+  service.disabled:
 {% endif %}
     - name: salt-minion
 
