@@ -31,9 +31,9 @@
         {% if f.source is defined %}
     - source: {{ f.source }}
     - template: jinja
-          {% if f.defaults is defined %}
+          {% if f.vars is defined %}
     - defaults:
-            {% for k,v in f.defaults.iteritems() %}
+            {% for k,v in f.vars.iteritems() %}
         "{{ k }}": "{{ v }}"
             {% endfor %}
           {% endif %}
