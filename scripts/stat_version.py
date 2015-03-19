@@ -2,10 +2,44 @@
 # -*- coding: utf-8 -*-
 
 import sys
+import shlex
 from os import path as osp
 from pprint import pprint
 
 from utils import exec_cmd as exec_cmd
+
+
+def gitversion(git_dir=None, local='HEAD', remote='origin/master'):
+    git_option = ''
+    if git_dir:
+        git_option = "--git-dir={0}/.git --work-tree={0}".format(git_dir)
+
+    outa = []
+
+    cmd = shlex.split("git {0} rev-parse --short HEAD".format(git_option))
+    ret, out =  exec_cmd(cmd)
+    if ret != 0:
+        return ret, ' '.join(outa)
+    outa.append(out.strip())
+
+    cmd = shlex.split("git {0} rev-list --left-right --count {1}...{2}"
+                      .format(git_option, remote, local))
+    ret, out =  exec_cmd(cmd)
+    if ret != 0:
+        return ret, ' '.join(outa)
+    behind, ahead = [int(h) for h in out.strip().split('\t')]
+    if ahead:
+        outa.append('a{0}'.format(ahead))
+    if behind:
+        outa.append('b{0}'.format(behind))
+
+    cmd = shlex.split('git {0} status --porcelain'.format(git_option))
+    ret, out =  exec_cmd(cmd)
+    if ret != 0:
+        return ret, ' '.join(outa)
+    if out: outa.append('*')
+
+    return '-'.join(outa)
 
 
 def stat_version(**kwargs):
@@ -18,17 +52,17 @@ def stat_version(**kwargs):
                 versions[k] = open(args).read().strip()
             else:
                 versions[k] = "null"
-        elif t in ("dpkg", "exec", "svn", "git"):
+        elif t == 'git':
+            versions[k]= gitversion(args,
+                                    local=v.get('local', 'HEAD'),
+                                    remote=v.get('remote', 'origin/master'))
+        elif t in ("dpkg", "exec", "svn"):
             if t == "exec":
                 cmd = args
             elif t == "svn":
                 cmd = ("svnversion", "-c", args)
             elif t == "dpkg":
                 cmd = ("dpkg-query", "-W", "-f=${Version}", args)
-            elif t == "git":
-                cmd = ("git", "--git-dir={0}/.git".format(args),
-                        "--work-tree={0}".format(args),
-                        "rev-parse", "--short", "HEAD")
             ret, out = exec_cmd(cmd)
             versions[k] = out.strip()
         else:
