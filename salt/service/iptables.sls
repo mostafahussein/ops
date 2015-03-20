@@ -10,6 +10,30 @@
   {% set rules_ipset = "/var/lib/ipset/rules-save" %}
   {% set rules_iptables = "/var/lib/iptables/rules-save" %}
 
+/var/lib/ipset:
+  file.directory:
+    - mode: 755
+    - user: root
+    - group: root
+    - clean: True
+    - exclude_pat: ".keep*"
+  {% if do_ipset %}
+    - require:
+        - file: {{ rules_ipset }}
+  {% endif %}
+
+/var/lib/iptables:
+  file.directory:
+    - mode: 755
+    - user: root
+    - group: root
+    - clean: True
+    - exclude_pat: ".keep*"
+  {% if do_iptables %}
+    - require:
+        - file: {{ rules_iptables }}
+  {% endif %}
+
 {% elif grains['os'] == "Ubuntu" %}
   {% set rules_ipset = "/etc/iptables/rules_ipset" %}
   {% set rules_iptables = "/etc/iptables/rules_iptables" %}
@@ -26,7 +50,16 @@
     - mode: 755
     - user: root
     - group: root
-    - makedirs: True
+    - clean: True
+  {% if do_iptables or do_ipset %}
+    - require:
+    {% if do_iptables %}
+        - file: {{ rules_iptables }}
+    {% endif %}
+    {% if do_ipset %}
+        - file: {{ rules_ipset }}
+    {% endif %}
+  {% endif %}
 
 {% elif grains['os'] == "CentOS" %}
   {% set rules_ipset = "/etc/sysconfig/ipset" %}
@@ -84,6 +117,7 @@ service.iptables:
   {% endif %}
   file.managed:
     - name: {{ rules_iptables }}
+    - makedirs: True
     - source:
     {% if iptables.rules is defined %}
       - salt://etc/iptables/{{ iptables.rules }}
@@ -171,6 +205,7 @@ service.ipset:
     - mode: 0600
     - user: root
     - group: root
+    - makedirs: True
     - template: jinja
     - source:
     {% if iptables.ipset_rules is defined %}
