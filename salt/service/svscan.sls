@@ -54,7 +54,8 @@ service.{{ s.name }}:
 {{ svscan_dir }}/{{ s.name }}:
   file.absent
     {% else %}
-      {% if s.disabled is defined %}
+      {% if s.passive|default(False) %}
+      {% elif s.disabled|default(False) %}
   service.dead:
     - provider: daemontools
     - name: {{ s.name }}
@@ -68,7 +69,9 @@ service.{{ s.name }}:
     - name: {{ s.name }}
     - require:
       - file: service.{{ s.name }}
+        {% if not s.passive|default(False) %}
       - file: {{ svscan_dir }}/{{ s.name }}/down
+        {% endif %}
     - watch:
       - file: service.{{ s.name }}
         {% if s.sources is defined and s.sources is iterable %}
@@ -87,15 +90,17 @@ service.{{ s.name }}:
     - require:
       - file: {{ svscan_dir }}/{{ s.name }}
 
+      {% if not s.passive|default(False) %}
 {{ svscan_dir }}/{{ s.name }}/down:
-      {% if s.disabled is defined %}
+        {% if s.disabled is defined %}
   file.managed:
     - user: root
     - group: root
     - mode: 0644
     - replace: False
-      {% else %}
+        {% else %}
   file.absent
+        {% endif %}
       {% endif %}
 
 {{ svscan_dir }}/{{ s.name }}:
