@@ -37,8 +37,8 @@ service.nginx:
 {% for f in nginx.get('nginx_confs', ()) %}
 /etc/nginx/{{ f.name }}:
   file.managed:
-    - source: {{ f.file }}
-    - mode: 0644
+    - source: {{ f.source }}
+    - mode: {{ f.mode|default('0644') }}
     - user: root
     - group: root
     - template: jinja
