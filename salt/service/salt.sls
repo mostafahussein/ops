@@ -116,6 +116,7 @@ service.salt-master:
     - mode: 644
     - user: root
     - group: root
+    - template: jinja
   {% endfor %}
 {% else %}
   service.dead:
