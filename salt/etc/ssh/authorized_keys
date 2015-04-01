@@ -1,7 +1,13 @@
 {%- import_yaml "config/pubkeys.yaml" as pubkeys -%}
-{%- load_yaml as users -%}
+{%- load_yaml as raw_users -%}
 {{ allows }}
 {%- endload -%}
-{% for u in users -%}
+{%- set users = [] -%}
+{%- for u in raw_users -%}
+  {%- if u not in users -%}
+    {%- do users.append(u) -%}
+  {%- endif -%}
+{%- endfor -%}
+{% for u in users|sort -%}
 {{ pubkeys.get(u) }}
 {% endfor %}
