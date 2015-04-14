@@ -66,6 +66,10 @@ sysconfig.named:
     - mode: {{ f.mode | default('0640')}}
     - source: salt:/{{ f.source | default(f.name) }}
     - template: jinja
+    {% if f.variables is defined %}
+    - defaults:
+        vars: {{ f.variables }}
+    {% endif %}
   {% elif fop == "directory" %}
     - mode: {{ f.mode | default('0751') }}
     - clean: {{ f.clean| default(False) }}
