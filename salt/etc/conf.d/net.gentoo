@@ -1,4 +1,13 @@
-{%- import_yaml "config/ip.yaml" as ip with context -%}
+{%- set ip_conf = "config/ip.yaml" -%}
+{%- if vars is defined -%}
+  {%- load_yaml as vars %}
+{{ vars }}
+  {%- endload -%}
+  {%- if vars.domain is defined -%}
+    {%- set ip_conf = "config/ip.%s.yaml"|format(vars.domain) -%}
+  {%- endif -%}
+{%- endif -%}
+{%- import_yaml ip_conf as ip with context -%}
 {%- set idname = grains['id'].split(".")[0] -%}
 {%- set nicconfs = ip.nics.get(grains['id'], ()) -%}
 {%- if not nicconfs -%}

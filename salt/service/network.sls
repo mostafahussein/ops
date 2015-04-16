@@ -1,7 +1,19 @@
 {# @todo add strictly ipv6 check, complete match #}
 
 {% import_yaml "config/nics.yaml" as nics with context %}
-{% import_yaml "config/ip.yaml" as ip with context %}
+
+{% set ip_conf = "config/ip.yaml" %}
+{% if grains["os"] == "CentOS" %}
+  {%- if nics.vars is defined -%}
+    {%- load_yaml as vars %}
+{{ nics.vars }}
+    {%- endload -%}
+    {%- if vars.domain is defined -%}
+      {%- set ip_conf = "config/ip.%s.yaml"|format(vars.domain) -%}
+    {%- endif -%}
+  {%- endif -%}
+{%- endif -%}
+{%- import_yaml ip_conf as ip with context -%}
 {% set idname = grains['id'].split(".")[0] %}
 
 {% set nicconfs = ip.nics.get(grains['id'], ()) %}
@@ -33,10 +45,15 @@
   {% endif %}
       - salt://etc/conf.d/net.{{ grains['id'] }}
       - salt://etc/conf.d/net.{{ grains['id'].split(".")[0] }}
+      - salt://common/etc/conf.d/net.gentoo
     - mode: 0644
     - user: root
     - group: root
     - template: jinja
+  {% if nics is defined and nics.vars is defined %}
+    - defaults:
+        vars: {{ nics.vars }}
+  {% endif %}
 
   {% for i in nics.get('nics', []) %}
 service.net.{{ i }}:
@@ -57,10 +74,15 @@ service.net.{{ i }}:
   {% endif %}
       - salt://etc/network/interfaces.{{ grains['id'] }}
       - salt://etc/network/interfaces.{{ grains['id'].split(".")[0] }}
+      - salt://common/etc/network/interfaces.ubuntu
     - mode: 0644
     - user: root
     - group: root
     - template: jinja
+  {% if nics is defined and nics.vars is defined %}
+    - defaults:
+        vars: {{ nics.vars }}
+  {% endif %}
 
 {% elif grains["os"] == "CentOS" %}
 
@@ -77,6 +99,7 @@ service.net.{{ i }}:
   {% endif %}
       - salt://etc/sysconfig/network-scripts/ifcfg.{{ grains['id'] }}
       - salt://etc/sysconfig/network-scripts/ifcfg.{{ grains['id'].split(".")[0] }}
+      - salt://common/etc/sysconfig/network-scripts/ifcfg.centos
     - mode: 0644
     - user: root
     - group: root
