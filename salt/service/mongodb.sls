@@ -48,6 +48,7 @@ service.mongodb.{{ t.name }}:
     - template: jinja
     - defaults:
         name: {{ t.name }}
+        bindIp: {{ t.bindIp|default('0.0.0.0') }}
         port: {{ t.port | default('27017') }}
         run: {{ t.run | default('/var/run/mongodb') }}
         data: {{ t.data }}
