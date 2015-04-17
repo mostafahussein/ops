@@ -61,6 +61,7 @@ tmux: app-misc/tmux
 traceroute: net-analyzer/traceroute
 uwsgi: www-servers/uwsgi
 xl2tpd: net-dialup/xl2tpd
+stunnel: net-misc/stunnel
 {% elif grains['os'] == "Ubuntu" %}
 exim: exim4
 ipsec: openswan
@@ -69,6 +70,7 @@ redis: redis-server
 sshd: openssh-server
 svscan: daemontools-run
 tftpd: tftpd-hpa
+stunnel: stunnel4
 {% elif grains['os'] == "CentOS" %}
 cron: cronie
 ipsec: libreswan
