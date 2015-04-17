@@ -1,5 +1,16 @@
 {% import_yaml "common/config/packages.yaml" as pkgs with context %}
 {% import_yaml "config/named.yaml" as named with context %}
+
+{% set named_confs = [] %}
+{% for f in named.get('named_confs', ()) %}
+  {% do named_confs.append(f) %}
+  {% if f.op|default("managed") == "directory" and f.configs is defined %}
+    {% for c in f.configs %}
+      {% do named_confs.append(c) %}
+    {% endfor %}
+  {% endif %}
+{% endfor %}
+
 service.named:
   pkg.installed:
     - name: {{ pkgs.named }}
@@ -19,7 +30,7 @@ service.named:
     - enable: {{ named.enable_sysvinit | default(True) }}
     - watch:
       - file: sysconfig.named
-{% for f in named.get('named_confs', ()) %}
+{% for f in named_confs %}
       - file: {{ f.name }}
 {% endfor %}
 
@@ -41,16 +52,6 @@ sysconfig.named:
     - user: root
     - group: root
     - template: jinja
-
-{% set named_confs = [] %}
-{% for f in named.get('named_confs', ()) %}
-  {% do named_confs.append(f) %}
-  {% if f.op|default("managed") == "directory" and f.configs is defined %}
-    {% for c in f.configs %}
-      {% do named_confs.append(c) %}
-    {% endfor %}
-  {% endif %}
-{% endfor %}
 
 {% for f in named_confs %}
   {% set fop = f.op|default("managed") %}
