@@ -53,6 +53,7 @@ spawn_fcgi: www-servers/spawn-fcgi
 sshd: net-misc/openssh
 strace: dev-util/strace
 sudo: app-admin/sudo
+supervisor: app-admin/supervisor
 svscan: sys-process/daemontools
 tcpdump: net-analyzer/tcpdump
 tftpd: net-ftp/tftp-hpa
