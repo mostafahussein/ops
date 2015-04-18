@@ -13,11 +13,16 @@ auto lo
 iface lo inet loopback
 
 {%- if ip.nics is defined -%}{%- for l in ip.nics.get(idname, ()) -%}
-  {%- if l.type.split('_')[0] == 'host' %}
+  {%- if l.type.split('_')[0] == 'host' and l.ip|default(False) %}
 {% if l.name != "lo" %}
 auto {{ l.name }}{% endif %}
-	{%- for i in l.ip %}
-iface {{ l.name }} {{ i.family|default("inet") }} static
+	{%- for i in l.ip -%}
+		{%- if ':' in i.addr -%}
+			{%- set family = 'inet6' -%}
+		{%- else -%}
+			{% set family = "inet" -%}
+		{%- endif %}
+iface {{ l.name }} {{ i.family|default(family) }} static
 	address {{ i.addr }}{% if i.mask is defined %}
 	netmask {{ i.mask }}{% endif %}
 	{%- if i.gw is defined %}
