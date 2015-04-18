@@ -13,7 +13,7 @@
 {%- if not nicconfs -%}
   {%- set nicconfs = ip.nics.get(idname, ()) -%}
 {%- endif -%}
-{%- if ip.nics is defined -%}{%- for l in nicconfs -%}
+{%- for l in nicconfs|sort -%}
   {%- if l.type.split('_')[0] == 'host' -%}
     {%- if l.ip is defined %}
 config_{{ l.name }}="{{ l.ip | join("\n", attribute="addr") }}"
@@ -24,4 +24,4 @@ config_{{ l.name }}="null"
 routes_{{ l.name }}="{{ l.route | join("\n") }}"
     {%- endif %}
   {%- endif %}
-{% endfor -%}{%- endif %}
+{% endfor -%}
