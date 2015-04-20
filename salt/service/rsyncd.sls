@@ -63,15 +63,20 @@ service.rsyncd:
 {% if rsyncd.filters is defined and rsyncd.filters is iterable %}
   {% for f in rsyncd.filters %}
 {{ f.name }}:
-    {% if f.source is not defined %}
-  file.absent
-    {% else %}
+    {% if f.source|default(False) or f.target|default(False) %}
+      {% if f.source|default(False) %}
   file.managed:
     - source: {{ f.source }}
     - mode: 644
+    - template: jinja
+      {% elif f.target|default(False) %}
+  file.symlink:
+    - target: {{ f.target }}
+      {% endif %}
     - user: root
     - group: root
-    - template: jinja
+    {% else %}
+  file.absent
     {% endif %}
   {% endfor %}
 {% endif %}
