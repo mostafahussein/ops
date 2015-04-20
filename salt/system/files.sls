@@ -35,9 +35,7 @@
           {% endif %}
           {% if f.vars is defined %}
     - defaults:
-            {% for k,v in f.vars.iteritems() %}
-        "{{ k }}": "{{ v }}"
-            {% endfor %}
+        vars: {{ f.vars }}
           {% endif %}
         {% else %}
     - replace: False
