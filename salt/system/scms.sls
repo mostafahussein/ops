@@ -93,6 +93,34 @@ git.status.{{ d }}:
   cmd.run:
     - name: "echo {{ git_result.split('\n')|join(',') }}"
   {% endif %}
+
+  {% set git_cmd = 'git --work-tree=%s --git-dir=%s/.git rev-list --left-right --count origin/master...HEAD'|format(d, d ) %}
+  {% set git_status = salt['cmd.run_all'](git_cmd, env={'LC_ALL': 'en_US.UTF-8'}) %}
+  {% if git_status.get('retcode') != 0 %}
+    {% set git_result = "`%s' failed w/ %d"|format(git_cmd, git_status.get('retcode')) %}
+  {% else %}
+    {% if git_status.get('stderr') %}
+      {% set git_result = "`%s' return error '%s'"|format(git_cmd, git_status.get('stderr')) %}
+    {% elif git_status.get('stdout') %}
+      {% set out = git_status.get('stdout') %}
+      {% set git_behind, git_ahead = out.split() %}
+      {% set out_a, out_b = ('', '') %}
+      {% if git_behind != '0' %}
+        {% set out_b = "HEAD is behind of origin/master by " ~ git_behind ~ " commits" %}
+      {% endif %}
+      {% if git_ahead != '0' %}
+        {% set out_a = "HEAD is ahead of origin/master by " ~ git_ahead ~ " commits" %}
+      {% endif %}
+      {% set git_result = out_a ~ (';' if (out_a and out_b) else '') ~ out_b %}
+    {% else %}
+      {% set git_result = "" %}
+    {% endif %}
+  {% endif %}
+  {% if git_result %}
+git.sync.{{ d }}:
+  cmd.run:
+    - name: "echo {{ git_result }}"
+  {% endif %}
 {% endfor %}
 
 {% if scms.git_files is defined and scms.git_files is iterable %}
