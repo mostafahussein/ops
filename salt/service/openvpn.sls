@@ -2,7 +2,7 @@
 {% import_yaml "config/openvpn.yaml" as openvpn with context %}
 
 {% if grains['os'] == "Gentoo" %}
-{% set user = "openvpn" %}
+{% set user = "root" %}
 {% set group = "openvpn" %}
 {% else %}
 {% set user = "root" %}
@@ -23,7 +23,7 @@ pkg.openvpn:
   {% else %}
   file.managed:
     - source: {{ f.source }}
-    - mode: '0500'
+    - mode: '0550'
     - user: {{ user }}
     - group: {{ group }}
     - template: jinja
@@ -43,7 +43,7 @@ pkg.openvpn:
   {% if f.get('enabled') %}
   file.managed:
     - source: {{ f.source }}
-    - mode: 0400
+    - mode: 0440
     - user: {{ user }}
     - group: {{ group }}
     - template: jinja
@@ -71,7 +71,7 @@ pkg.openvpn:
   file.directory:
     - user: {{ user }}
     - group: {{ group }}
-    - mode: 0700
+    - mode: 0750
   {% elif f.type == "file" %}
     {% do vpn_requires.append(f.name) %}
 {{ f.name }}:
@@ -87,7 +87,7 @@ pkg.openvpn:
     {% endif %}
     - user: {{ f.user | default(user) }}
     - group: {{ f.group | default(group) }}
-    - mode: {{ f.mode | default('0400') }}
+    - mode: {{ f.mode | default('0440') }}
     - template: jinja
   {% elif f.type == "symlink" %}
     {% do vpn_requires.append(f.name) %}
@@ -110,7 +110,7 @@ pkg.openvpn:
   file.directory:
     - user: {{ user }}
     - group: {{ group }}
-    - mode: 0700
+    - mode: 0750
     - clean: True
       {% if ccd_list or ccds.ccd_default|default(False) %}
     - require:
@@ -129,7 +129,7 @@ pkg.openvpn:
     - source: salt://common/etc/openvpn/ccds/config
     - user: {{ user }}
     - group: {{ group }}
-    - mode: 0400
+    - mode: 0440
     - template: jinja
     - defaults:
         loc: {{ c.name }}
