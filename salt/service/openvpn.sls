@@ -71,7 +71,12 @@ pkg.openvpn:
   file.directory:
     - user: {{ user }}
     - group: {{ group }}
-    - mode: 0750
+    - dir_mode: {{ f.dir_mode|default('0550') }}
+    - file_mode: {{ f.file_mode|default('0440') }}
+    - recurse:
+        - user
+        - group
+        - mode
   {% elif f.type == "file" %}
     {% do vpn_requires.append(f.name) %}
 {{ f.name }}:
@@ -93,6 +98,8 @@ pkg.openvpn:
     {% do vpn_requires.append(f.name) %}
 {{ f.name }}:
   file.symlink:
+    - user: {{ f.user|default(user) }}
+    - group: {{ f.group|default(group) }}
     - target: {{ f.target }}
   {% elif f.type == "ccds" %}
     {% import_yaml f.name as ccds with context -%}
@@ -110,7 +117,7 @@ pkg.openvpn:
   file.directory:
     - user: {{ user }}
     - group: {{ group }}
-    - mode: 0750
+    - mode: 0550
     - clean: True
       {% if ccd_list or ccds.ccd_default|default(False) %}
     - require:
