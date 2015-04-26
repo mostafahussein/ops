@@ -1,0 +1,15 @@
+{%- import_yaml "config/salt.yaml" as salt with context -%}
+{%- set codename = grains['oscodename'] -%}
+deb http://mirrors.{{ salt.domain }}/ubuntu/ {{ codename }} main universe
+deb http://mirrors.{{ salt.domain }}/ubuntu/ {{ codename }}-security main universe
+deb http://mirrors.{{ salt.domain }}/ubuntu/ {{ codename }}-updates main universe
+deb http://mirrors.{{ salt.domain }}/ubuntu/ {{ codename }}-proposed main universe
+deb http://mirrors.{{ salt.domain }}/ubuntu/ {{ codename }}-backports main universe
+deb-src http://mirrors.{{ salt.domain }}/ubuntu/ {{ codename }} main universe
+deb-src http://mirrors.{{ salt.domain }}/ubuntu/ {{ codename }}-security main universe
+deb-src http://mirrors.{{ salt.domain }}/ubuntu/ {{ codename }}-updates main universe
+deb-src http://mirrors.{{ salt.domain }}/ubuntu/ {{ codename }}-proposed main universe
+deb-src http://mirrors.{{ salt.domain }}/ubuntu/ {{ codename }}-backports main universe
+
+deb http://security.ubuntu.com/ubuntu {{ codename }}-security main universe
+deb-src http://security.ubuntu.com/ubuntu {{ codename }}-security main universe

@@ -49,7 +49,9 @@
   {% import_yaml "config/apt.yaml" as apt with context %}
 /etc/apt/sources.list:
   file.managed:
-    - source: salt://etc/apt/sources.list
+    - source:
+      - salt://etc/apt/sources.list
+      - salt://common/etc/apt/sources.list
     - user: root
     - group: root
     - mode: 0644
