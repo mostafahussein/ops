@@ -26,7 +26,11 @@ service.smartd:
   service.dead:
     - enable: False
 {% endif %}
+{% if grains['os'] == "Ubuntu" %}
+    - name: smartmontools
+{% else %}
     - name: smartd
+{% endif %}
     - sig: "/usr/sbin/smartd"
   file.managed:
     - user: root
@@ -44,4 +48,17 @@ service.smartd:
     - mode: "0644"
     - template: jinja
     - source: salt://common/etc/default/smartmontools
+
+  {% if grains['osrelease'] in ('12.04',) %}
+/etc/init.d/smartd:
+    {% if grains.get('virtual') == 'physical' and
+      smartd.svc_enabled|default(True) %}
+  service.running:
+    - enable: True
+    {% else %}
+  service.dead:
+    - enable: False
+    {% endif %}
+    - name: smartd
+  {% endif %}
 {% endif %}
