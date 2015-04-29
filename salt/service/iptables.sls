@@ -183,6 +183,9 @@ service.ipset:
   {% if do_ipset %}
   service.enabled:
     - name: ipset
+  module.wait:
+    - name: service.restart
+    - m_name: ipset
     - watch:
       - file: {{ rules_ipset }}
 
@@ -195,6 +198,11 @@ service.ipset:
   {% else %}
   service.disabled:
     - name: ipset
+  module.wait:
+    - name: service.stop
+    - m_name: ipset
+    - watch:
+      - file: {{ rules_ipset }}
   {% endif %}
 {% endif %}
 
