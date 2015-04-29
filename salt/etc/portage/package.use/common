@@ -1,3 +1,4 @@
+app-text/ghostscript-gpl cups
 dev-db/mariadb extraengine odbc
 dev-lang/php -cjk
 dev-lang/python -berkdb
@@ -10,3 +11,4 @@ net-analyzer/wireshark -gtk3 -qt4
 net-dns/bind -berkdb dlz -mysql
 net-firewall/iptables -static-libs
 net-libs/libpcap -netlink
+x11-libs/cairo X
