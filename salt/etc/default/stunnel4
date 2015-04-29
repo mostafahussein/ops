@@ -1,0 +1,16 @@
+{%- import_yaml "config/stunnel.yaml" as stunnel with context -%}
+# /etc/default/stunnel
+# Julien LEMOINE <speedblue@debian.org>
+# September 2003
+
+# Change to one to enable stunnel automatic startup
+{% if stunnel.services|default(False) -%}
+ENABLED=1
+{% else -%}
+ENABLED=0
+{% endif -%}
+FILES="/etc/stunnel/*.conf"
+OPTIONS=""
+
+# Change to one to enable ppp restart scripts
+PPP_RESTART=0
