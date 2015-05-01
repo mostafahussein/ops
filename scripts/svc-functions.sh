@@ -2,11 +2,8 @@
 
 export SANDBOX=/usr/lib64/libsandbox.so
 
-NOW_DATETIME=$(date +%Y%m%d-%H%M)
-NOW_DATE=${NOW_DATETIME%-*}
-NOW_DATE_HOUR=${NOW_DATETIME:0:-2}
-
-die() {
+die()
+{
     local ret="${1:-0}"
     shift
 
@@ -14,12 +11,20 @@ die() {
     exit $ret
 }
 
+for f in /usr/lib64/bash/sleep /usr/lib/bash/sleep ; do
+    if [ -x ${f} ] ; then
+        enable -f ${f} sleep
+        break
+    fi
+done
+
+[ -s /usr/lib64/libsandbox.so ] && {
+    export SANDBOX=/usr/lib64/libsandbox.so
+}
+
 set_sandbox()
 {
-    [ ! -f ${SANDBOX} ] && {
-        echo "!!! CAUTION: Sandbox not found."
-        return
-    }
+    [ -z "${SANDBOX}" -o ! -f "${SANDBOX}" ] && return
 
     export LD_PRELOAD=${SANDBOX}
     export SANDBOX_ON=1
@@ -28,9 +33,16 @@ set_sandbox()
     export SANDBOX_ACTIVE="armedandready"
 }
 
+unset_sandbox()
+{
+    unset LD_PRELOAD
+}
+
 enable_sandbox()
 {
     local dir=$1
+
+    [ -z "${SANDBOX}" -o ! -f "${SANDBOX}" ] && return
 
     export SANDBOX_WRITE="${dir}"
 }
@@ -40,41 +52,99 @@ disable_sandbox()
     unset SANDBOX_WRITE
 }
 
-# do_rsync src dst [rsync options]
-do_rsync()
+get_proc_dir()
 {
-    if [ $# -lt 2 ] ; then
-        echo "do_rsync src dst"
-        return
-    fi
+    local PIDFILE=$1
 
-    local src=$1
-    local dst=$2
-    shift 2
-
-    if [ -d "${src}" -a -d "${dst}" ] ; then
-        echo "!!! both src and dst are directory, ignore"
-        return
-    fi
-
-    if [ -d "${dst}" ] ; then
-        dir=$(realpath ${dst})
-        pushd "${dir}"
-        if [ "$(pwd)" != "${dir}" ] ; then
-            echo "!!! can't cd to ${dir}"
-            return
+    if [ -s ${PIDFILE} ] ; then
+        local pid=$(< $1)
+        if [ ! -z ${pid} ] ; then
+            X_PROCDIR="/proc/${pid}"
+            return 0
         fi
-        enable_sandbox ${dir}
     fi
 
-    echo ">>> Sync from ${src} to ${dst}, begin @ $(date)"
-    rsync ${RSYNC_OPTS} $* ${src} ${dst}
-    echo ">>> Sync end @ $(date)"
+    return 1
+}
 
-    if [ -d "${dst}" ] ; then
-        disable_sandbox
-        popd
+log_and_run()
+{
+    local loglevel=local4.notice
+
+    eval $*
+    ret=$?
+    if [[ $ret -ne 0 ]] ; then
+        loglevel=local4.crit
+    fi
+    logger -p ${loglevel} -t ${LOGGER_TAG:-unknown} -- "return $ret from cmd: $*"
+    return $ret
+}
+
+function hexdomain()
+{
+    local hexdomain=""
+    local domain=$1
+
+    OLDIFS=${IFS}
+    IFS=.
+
+    for a in ${domain} ; do
+        args="printf "
+        for (( i=0; i<=${#a}; i++ )); do
+            args=${args}"%02x"
+        done
+        args=${args}" ${#a}"
+        for (( i=0; i<${#a}; i++ )); do
+            args=${args}" ""\'${a:$i:1}"
+        done
+        hexdomain=${hexdomain}$(eval ${args})
+    done
+
+    IFS=${OLDIFS}
+
+    echo -n ${hexdomain}
+}
+
+check_service()
+{
+    local PROG=$1
+    local CMD=$2
+    local SVC=$3
+    local PCOUNT=1
+    shift 3
+
+    if [ $# -gt 0 ] ; then
+        local PCOUNT=$1
+        shift
     fi
 
-    return
+    service ${SVC} status
+    if [ $? -ne 0 ] ; then
+        logger -i -p local3.err -t "$PROG" "${SVC} die, try restart"
+        service ${SVC} restart
+        if [ $? -ne 0 ] ; then
+            logger -i -p local3.emerg -t "$PROG" "${SVC} restart failed, try again later"
+        fi
+        return
+    fi
+
+    if [[ ! -z ${CMD} ]] ; then
+        pids=($(pgrep -f "${CMD}"))
+        if [ $? -ne 0 ] ; then
+            logger -i -p local3.emerg -t "$PROG" "${SVC} started, but process mismatch"
+            service ${SVC} restart
+            if [ $? -ne 0 ] ; then
+                logger -i -p local3.emerg -t "$PROG" "${SVC} restart failed, try again later"
+            fi
+        else
+            local pcount=${#pids[@]}
+            if [ $pcount -lt $PCOUNT ] ; then
+                logger -i -p local3.emerg -t "$PROG" "${SVC} started, but process count mismatch"
+                service ${SVC} restart
+                if [ $? -ne 0 ] ; then
+                    logger -i -p local3.emerg -t "$PROG" "${SVC} restart failed, try again later"
+                fi
+            fi
+        fi
+    fi
 }
