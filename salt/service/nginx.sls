@@ -25,7 +25,7 @@ service.nginx:
     - group: root
     - mode: 0755
     - clean: True
-    - exclude_pat: "E@^(scgi|fastcgi|proxy|uwsgi)_params|mime.types|fastcgi.conf$"
+    - exclude_pat: "E@^(scgi|fastcgi|proxy|uwsgi)_params|mime.types|fastcgi.conf|naxsi_core.rules$"
     - require:
 {% for f in nginx.get('nginx_confs', ()) %}
       - file: /etc/nginx/{{ f.name }}
