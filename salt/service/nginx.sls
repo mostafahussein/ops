@@ -4,12 +4,12 @@
 {% import_yaml "config/nginx.yaml" as nginx with context %}
 
 service.nginx:
-{% if nginx.pkg_installed|default(True) %}
+{% if nginx.nginx_confs|default(False) %}
+  {% if nginx.pkg_installed|default(True) %}
   pkg.installed:
     - name: {{ pkgs.nginx | default('nginx') }}
     - refresh: False
-{% endif %}
-{% if nginx.nginx_confs|default(False) %}
+  {% endif %}
   service.running:
     - name: nginx
     - enable: True
