@@ -16,7 +16,7 @@
     - user: {{ f.user }}
     - group: {{ group }}
     - mode: 0700
-    - clean: true
+    - clean: {{ f.clean|default(true) }}
     - exclude_pat: "E@^(config|known_hosts)$"
     - require:
         - file: {{ homedir }}/authorized_keys
