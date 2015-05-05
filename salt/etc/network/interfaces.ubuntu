@@ -13,24 +13,29 @@ auto lo
 iface lo inet loopback
 
 {%- if ip.nics is defined -%}{%- for l in ip.nics.get(idname, ()) -%}
-  {%- if l.type.split('_')[0] == 'host' and l.ip|default(False) %}
+  {%- if l.type.split('_')[0] == 'host'%}
 {% if l.name != "lo" %}
 auto {{ l.name }}{% endif %}
-	{%- for i in l.ip -%}
-		{%- if ':' in i.addr -%}
-			{%- set family = 'inet6' -%}
-		{%- else -%}
-			{% set family = "inet" -%}
-		{%- endif %}
+	{%- if l.ip|default(False) -%}
+		{%- for i in l.ip -%}
+			{%- if ':' in i.addr -%}
+				{%- set family = 'inet6' -%}
+			{%- else -%}
+				{% set family = "inet" -%}
+			{%- endif %}
 iface {{ l.name }} {{ i.family|default(family) }} static
 	address {{ i.addr }}{% if i.mask is defined %}
 	netmask {{ i.mask }}{% endif %}
-	{%- if i.gw is defined %}
+		{%- if i.gw is defined %}
 	gateway {{ i.gw }}
-	{%- endif %}
-	{%- if i.extra is defined -%}{%- for e in i.extra %}
+		{%- endif %}
+		{%- if i.extra is defined -%}{%- for e in i.extra %}
 	{{ e }}
-	{%- endfor -%}{%- endif %}
-	{%- endfor %}
+		{%- endfor -%}{%- endif %}
+		{%- endfor %}
+	{%- else %}
+iface {{ l.name }} inet manual
+	up ip link set dev {{ l.name }} up
+	{%- endif -%}
   {%- endif -%}
 {% endfor -%}{%- endif -%}
