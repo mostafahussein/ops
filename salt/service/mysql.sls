@@ -1,7 +1,9 @@
-{% import_yaml "common/config/packages.yaml" as pkgs with context %}
 {% import_yaml "config/mysql.yaml" as mysql with context %}
 
+{% if mysql.enabled|default(False) %}
+
 {% set pkg_name = mysql.pkg|default('mariadb') %}
+{% import_yaml "common/config/packages.yaml" as pkgs with context %}
 
 service.mysqld:
   pkg.installed:
@@ -21,5 +23,8 @@ service.mysqld:
     - user: root
     - group: root
     - template: jinja
+  {% if mysql.my_cnf_vars|default(False) %}
     - defaults:
-        binlog_days: 30
+        vars: {{ mysql.my_cnf_vars }}
+  {% endif %}
+{% endif %}
