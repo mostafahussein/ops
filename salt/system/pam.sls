@@ -19,10 +19,12 @@
     - user: root
     - group: root
     - template: jinja
-{% elif grains['os'] == "Ubuntu" %}
+{% endif %}
+
+{% if grains['os'] in ("Gentoo", "Ubuntu") %}
 /etc/pam.d/sshd:
   file.managed:
-    - source: salt://common/etc/pam.d/sshd.ubuntu
+    - source: salt://common/etc/pam.d/sshd.{{ grains['os']|lower }}
     - mode: 0644
     - user: root
     - group: root
