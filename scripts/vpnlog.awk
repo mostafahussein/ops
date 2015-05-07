@@ -5,6 +5,10 @@
 #2014-04-14T14:02:53.332974+08:00 gw-x(fd6d::) daemon.notice vpn-server.xxx[9142]:  1.2.3.4:5 [xxx] Peer Connection Initiated with [AF_INET]1.2.3.4:5 (via [AF_INET]x.x.x.x%eth1)
 #2015-04-08T08:11:34.221335+08:00 gw-x(fd6d::) daemon.notice vpn-server.xxx[8721]:  117.79.232.219:8055 SENT CONTROL [linf]: 'AUTH_FAILED' (status=1)
 BEGIN {
+    verbose = 1
+    if ("VERBOSE" in ENVIRON) {
+        verbose = 0
+    }
 }
 
 {
@@ -55,20 +59,26 @@ BEGIN {
 }
 
 END {
-    print ">>> Connection w/ revoked cert"
-    for (u in crls) {
-        printf "%5d %s\n", crls[u], u
-    }
-    print ">>> AUTH Failed user statistic"
-    for (u in fusers) {
-        printf "%5d %s\n", fusers[u], u
-    }
-    print ">>> User connect statistic"
-    for (u in users) {
-        printf "%5d %s\n", users[u], u
-    }
-    print ">>> Connection attempt"
-    for (u in inits) {
-        printf "%5d %s\n", inits[u], u
+    if (verbose) {
+        print ">>> Connection w/ revoked cert"
+        for (u in crls) {
+            printf "%5d %s\n", crls[u], u
+        }
+        print ">>> AUTH Failed user statistic"
+        for (u in fusers) {
+            printf "%5d %s\n", fusers[u], u
+        }
+        print ">>> User connect statistic"
+        for (u in users) {
+            printf "%5d %s\n", users[u], u
+        }
+        print ">>> Connection attempt"
+        for (u in inits) {
+            printf "%5d %s\n", inits[u], u
+        }
+    } else {
+        for (u in users) {
+            printf "%s\n", u
+        }
     }
 }
