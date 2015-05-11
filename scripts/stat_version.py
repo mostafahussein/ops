@@ -9,7 +9,7 @@ from pprint import pprint
 from utils import exec_cmd as exec_cmd
 
 
-def gitversion(git_dir=None, local='HEAD', remote='origin/master'):
+def gitversion(git_dir=None, local='HEAD', remote=None):
     git_option = ''
     if git_dir:
         git_option = "--git-dir={0}/.git --work-tree={0}".format(git_dir)
@@ -22,6 +22,11 @@ def gitversion(git_dir=None, local='HEAD', remote='origin/master'):
         return ret, ' '.join(outa)
     outa.append(out.strip())
 
+    if not remote:
+        get_head_name_cmd = shlex.split("git {0} rev-parse --abbrev-ref HEAD"
+                                        .format(git_option))
+        head_name = exec_cmd(get_head_name_cmd)[1].strip()
+        remote = "origin/{0}".format(head_name)
     cmd = shlex.split("git {0} rev-list --left-right --count {1}...{2}"
                       .format(git_option, remote, local))
     ret, out =  exec_cmd(cmd)
@@ -55,7 +60,7 @@ def stat_version(**kwargs):
         elif t == 'git':
             versions[k]= gitversion(args,
                                     local=v.get('local', 'HEAD'),
-                                    remote=v.get('remote', 'origin/master'))
+                                    remote=v.get('remote', None))
         elif t in ("dpkg", "exec", "svn"):
             if t == "exec":
                 cmd = args
