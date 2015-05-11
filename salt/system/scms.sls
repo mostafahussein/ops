@@ -74,8 +74,10 @@ svn.auth.{{ f }}:
 {% endfor %}
 
 {% for d in git_dirs %}
+  {% set git_base_cmd = 'git --work-tree=%s --git-dir=%s/.git'|format(d, d) %}
+
   {# set git_cmd = 'git -C %s status -s'|format(d) #}
-  {% set git_cmd = 'git --work-tree=%s --git-dir=%s/.git status -s'|format(d, d ) %}
+  {% set git_cmd = '%s status -s'|format(git_base_cmd) %}
   {% set git_status = salt['cmd.run_all'](git_cmd, env={'LC_ALL': 'en_US.UTF-8'}) %}
   {% if git_status.get('retcode') != 0 %}
     {% set git_result = "`%s' failed w/ %d"|format(git_cmd, git_status.get('retcode')) %}
@@ -94,7 +96,9 @@ git.status.{{ d }}:
     - name: "echo {{ git_result.split('\n')|join(',') }}"
   {% endif %}
 
-  {% set git_cmd = 'git --work-tree=%s --git-dir=%s/.git rev-list --left-right --count origin/master...HEAD'|format(d, d ) %}
+  {# Precondition: local branch and remote branch have same name #}
+  {% set get_head_name = '%s rev-parse --abbrev-ref HEAD'|format(git_base_cmd) %}
+  {% set git_cmd = '%s rev-list --left-right --count origin/$(%s)...HEAD'|format(git_base_cmd, get_head_name) %}
   {% set git_status = salt['cmd.run_all'](git_cmd, env={'LC_ALL': 'en_US.UTF-8'}) %}
   {% if git_status.get('retcode') != 0 %}
     {% set git_result = "`%s' failed w/ %d"|format(git_cmd, git_status.get('retcode')) %}
