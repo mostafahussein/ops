@@ -97,8 +97,9 @@ git.status.{{ d }}:
   {% endif %}
 
   {# Precondition: local branch and remote branch have same name #}
-  {% set get_head_name = '%s rev-parse --abbrev-ref HEAD'|format(git_base_cmd) %}
-  {% set git_cmd = '%s rev-list --left-right --count origin/$(%s)...HEAD'|format(git_base_cmd, get_head_name) %}
+  {% set get_head_name_cmd = '%s rev-parse --abbrev-ref HEAD'|format(git_base_cmd) %}
+  {% set head_name = salt['cmd.run_all'](get_head_name_cmd, env={'LC_ALL': 'en_US.UTF-8'}).get('stdout') %}
+  {% set git_cmd = '%s rev-list --left-right --count origin/%s...HEAD'|format(git_base_cmd, head_name) %}
   {% set git_status = salt['cmd.run_all'](git_cmd, env={'LC_ALL': 'en_US.UTF-8'}) %}
   {% if git_status.get('retcode') != 0 %}
     {% set git_result = "`%s' failed w/ %d"|format(git_cmd, git_status.get('retcode')) %}
