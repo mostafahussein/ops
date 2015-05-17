@@ -24,24 +24,26 @@ def stat_info():
                 if key == 'cpu':
                     stats[key] = {}
                     stats[key]['count'] = 0
-                    stats[key]['stat'] = {}
-                    cpu_usage = tuple(map(int, les[1:]))
-                    len_usage = len(cpu_usage)
-                    stats[key]['stat']['sys'] = cpu_usage[2]
-                    stats[key]['stat']['user'] = cpu_usage[0]
-                    stats[key]['stat']['nice'] = cpu_usage[1]
-                    stats[key]['stat']['idle'] = cpu_usage[3]
-                    if len_usage > 4:
-                        stats[key]['stat']['irq'] = cpu_usage[5]
-                        stats[key]['stat']['iowait'] = cpu_usage[4]
-                        stats[key]['stat']['softirq'] = cpu_usage[6]
-                    if len_usage > 7:
-                        stats[key]['stat']['steal'] = cpu_usage[7]
-                        stats[key]['stat']['guest'] = cpu_usage[8]
-                        stats[key]['stat']['guestnice'] = cpu_usage[8]
+                    k_name = 'stat'
                 else:
                     idx = int(key[3:])
-                    stats['cpu']['count'] = stats['cpu']['count'] + 1
+                    stats['cpu']['count'] += 1
+                    k_name = key
+                stats['cpu'][k_name] = {}
+                cpu_usage = tuple(map(int, les[1:]))
+                len_usage = len(cpu_usage)
+                stats['cpu'][k_name]['sys'] = cpu_usage[2]
+                stats['cpu'][k_name]['user'] = cpu_usage[0]
+                stats['cpu'][k_name]['nice'] = cpu_usage[1]
+                stats['cpu'][k_name]['idle'] = cpu_usage[3]
+                if len_usage > 4:
+                    stats['cpu'][k_name]['irq'] = cpu_usage[5]
+                    stats['cpu'][k_name]['iowait'] = cpu_usage[4]
+                    stats['cpu'][k_name]['softirq'] = cpu_usage[6]
+                if len_usage > 7:
+                    stats['cpu'][k_name]['steal'] = cpu_usage[7]
+                    stats['cpu'][k_name]['guest'] = cpu_usage[8]
+                    stats['cpu'][k_name]['guestnice'] = cpu_usage[8]
             elif key in ('intr', 'softirq'):
                 stats[key] = sum([int(x) for x in les[1:]])
             elif key in ('ctxt', 'processes',

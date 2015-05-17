@@ -209,13 +209,19 @@ class stat_thread(threading.Thread):
                 pass
             stats_last[kind] = deepcopy(stat)
             stats_last[kind]['timestamp'] = time_current
+
+            # do not store single cpu data
+            if kind == 'cpu' and 'cpu' in stats:
+                keys = stats['cpu'].keys()
+                for k in keys:
+                    if k.startswith('cpu'):
+                        stats['cpu'].pop(k)
         else:
             r = check_func(stat, w_t, c_t)
 
         check_time_next[kind] += interval * MINUTE
         return {kind: r} if r else None
 
-    # @todo check per cpu usage
     @staticmethod
     def check_cpu(stat, stat_last, timedelta,
                   threshold_warning, threshold_critical):
@@ -224,21 +230,35 @@ class stat_thread(threading.Thread):
         msg = []
         try:
             cpu_count = stat['count']
-            cpu_current = stat['stat']
-            cpu_last = stat_last['stat']
-            # cpu average every second
-            _f = lambda x: x / timedelta / cpu_count
-            cpu_sys = _f(cpu_current['sys'] - cpu_last['sys'])
-            cpu_user = _f(cpu_current['user'] - cpu_last['user'])
-            cpu_idle = _f(cpu_current['idle'] - cpu_last['idle'])
-            cpu_iowait = _f(cpu_current['iowait'] - cpu_last['iowait'])
-            msg.append("CPU Usage (user/sys/idle/wait): {0}%/{1}%/{2}%/{3}%"
-                       .format(cpu_user, cpu_sys, cpu_idle, cpu_iowait))
-            cpu_usage = 100 - cpu_idle - cpu_iowait
-            if cpu_usage >= threshold_warning:
-                ret = STATE_WARNING
-            elif cpu_usage >= threshold_critical:
-                ret = STATE_CRITICAL
+
+            def _do_check(k, stat, stat_last):
+                '''check total and per cpu'''
+                _ret = STATE_OK
+                # cpu average every second
+                _f = lambda x: x / timedelta / (cpu_count if k=='stat' else 1)
+                cpu_sys = _f(stat['sys'] - stat_last['sys'])
+                cpu_user = _f(stat['user'] - stat_last['user'])
+                cpu_idle = _f(stat['idle'] - stat_last['idle'])
+                cpu_iowait = _f(stat['iowait'] - stat_last['iowait'])
+                cpu_usage = 100 - cpu_idle - cpu_iowait
+                if cpu_usage >= threshold_critical:
+                    _ret = STATE_CRITICAL
+                elif cpu_usage >= threshold_warning:
+                    _ret = STATE_WARNING
+                cpu_name = 'cpu' if k == 'stat' else k
+                # show total cpu and warning/critical per cpu
+                if k == 'stat' or _ret != STATE_OK:
+                    msg.append("{0} Usage (user/sys/idle/wait): "
+                               "{1}%/{2}%/{3}%/{4}%"
+                               .format(cpu_name.upper(), cpu_user, cpu_sys,
+                                       cpu_idle, cpu_iowait))
+                return _ret
+
+            for k in stat.keys():
+                if k == 'stat' or k.startswith('cpu'):
+                    cpu_current, cpu_last = stat[k], stat_last[k]
+                    _ret = _do_check(k, cpu_current, cpu_last)
+                    ret = max(ret, _ret)
         except Exception, e:
             ret = STATE_UNKNOWN
             msg.append('{0}, {1}'.format(e, traceback.format_exc()))
