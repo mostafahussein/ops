@@ -38,6 +38,7 @@ from utils.sistr import sistr
 from utils import nagios
 from nagios.check_ssh import check_ssh as _check_ssh
 from nagios.check_rsync import check_rsync as _check_rsync
+from utils.mail import count_mail_queue
 
 # pylint: disable=bare-except
 try:
@@ -240,6 +241,29 @@ class stat_thread(threading.Thread):
     def check_rsync(**param):
         rsync_ret = _check_rsync('127.0.0.1')
         return rsync_ret
+
+    @staticmethod
+    def check_mail(mail_type='exim', **param):
+        try:
+            _mail_num, _ret_code, _ret_msg = count_mail_queue(mail_type)
+            if _ret_code:
+                _msg = _ret_msg
+                ret = STATE_CRITICAL
+            elif _mail_num:
+                _msg = '{0} mails in the queue'.format(_mail_num)
+                ret = STATE_WARNING
+            else:
+                _msg = ''
+                ret = STATE_OK
+        except Exception as e:
+            _msg = str(e)
+            ret = STATE_UNKNOWN
+
+        msg = "Mail({0}) {1}".format(mail_type, nagios.STATE_STR[ret])
+        if _msg:
+            msg = "{0} - {1}".format(msg, _msg)
+
+        return (ret, msg)
 
     @staticmethod
     def check_cpu(stat, stat_last, timedelta,
