@@ -227,9 +227,12 @@ class stat_thread(threading.Thread):
         return {kind: r} if r else None
 
     @staticmethod
-    def check_ssh(ssh_version, auth=None, **param):
-        ssh_version = str(ssh_version)
-        ssh_ret = _check_ssh('127.0.0.1', ssh_version, auth)
+    def check_ssh(version='2', auth=('publickey',), **param):
+        version = str(version)
+        # auth: False to disable auth checker
+        if not auth:
+            auth = None
+        ssh_ret = _check_ssh('127.0.0.1', version, auth)
         return ssh_ret
 
     @staticmethod
