@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # pylint: disable=redefined-outer-name
-
-import argparse
 import sys
 from os import path as osp
 
@@ -16,6 +14,7 @@ from utils import nagios
 
 def check_ssh(host, ssh_version, auths, port=22, timeout=30):
     """Check SSH service protocol version, opened authentication type."""
+    conn = None  # predefine conn for close socket
     try:
         # validate ssh version
         if ssh_version not in ('1', '1.99', '2'):
@@ -32,28 +31,42 @@ def check_ssh(host, ssh_version, auths, port=22, timeout=30):
                         "Auth type should in '{0}'"
                         .format(','.join(valid_auth_type)))
 
-        ssh_info = ssh.get_ssh_info(host, port, timeout)
-        msg = 'Version: {0}, Auths: {1}'.format(ssh_info['banner'],
-                                                ','.join(ssh_info['auth']))
+        _msg = []
+        ret = nagios.STATE_OK
 
         if ssh_version:
-            if ssh_version != ssh_info['version']:
-                return (nagios.STATE_WARNING, msg)
+            conn = ssh.do_connect(host, port, timeout)
+            banner = ssh.get_ssh_banner(conn)
+            _version = ssh.get_ssh_version(banner)
+            if ssh_version != _version:
+                ret = nagios.STATE_WARNING
+                _msg.append("Version: expected {0} but `{1}'" \
+                            .format(ssh_version, _version))
+            else:
+                _msg.append('Version: {0}'.format(banner))
 
         if auths:
-            for auth in ssh_info['auth']:
-                if auth not in auths:
-                    msg = "Real auth type '{0}' not as expected '{1}'" \
-                          .format(','.join(ssh_info['auth']), ','.join(auths))
-                    return (nagios.STATE_CRITICAL, msg)
+            _auths = ssh.get_ssh_auth(host, port)
+            unexpected_auths = [a for a in _auths if a not in auths]
+            if unexpected_auths:
+                ret = nagios.STATE_CRITICAL
+                _msg.append("Auth: expected {0} but `{1}'" \
+                            .format(','.join(auths), ','.join(_auths)))
+            else:
+                _msg.append('Auth: {0}'.format(','.join(_auths)))
 
-        return (nagios.STATE_OK, msg)
+        msg = ','.join(_msg)
+        return (ret, msg)
     except Exception as e:
         return (nagios.STATE_UNKNOWN, str(e))
+    finally:
+        if conn:
+            conn.close()
 
 
 if __name__ == '__main__':
     # pylint: disable=superfluous-parens
+    import argparse
     parser = argparse.ArgumentParser(description='Try to connect to an '
                                      'SSH server at specified server and port')
     parser.add_argument('-H', '--hostname', dest='hostname',
