@@ -76,22 +76,3 @@ def get_ssh_version(banner):
         raise Exception('Unknown version: {0}'.format(banner))
 
     return version
-
-
-def get_ssh_info(host, port=22, timeout=None):
-    '''if ssh running, get the ssh banner(version) message, and
-    opened auth type.'''
-    ssh_info = {}
-    conn = None  # predefine conn for close socket
-    try:
-        # get ssh version info by socket
-        conn = do_connect(host, port, timeout)
-        ssh_info['banner'] = get_ssh_banner(conn)
-        ssh_info['version'] = get_ssh_version(ssh_info['banner'])
-
-        # get ssh opened auth type
-        ssh_info['auth'] = get_ssh_auth(host, port)
-        return ssh_info
-    finally:
-        if conn:
-            conn.close()
