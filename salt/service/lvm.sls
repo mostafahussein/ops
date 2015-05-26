@@ -10,5 +10,10 @@ service.lvm:
   file.symlink:
     - name: /etc/runlevels/boot/lvm
     - target: /etc/init.d/lvm
+
+service.lemetad:
+  file.symlink:
+    - name: /etc/runlevels/boot/lvmetad
+    - target: /etc/init.d/lvmetad
   {% endif %}
 {% endif %}

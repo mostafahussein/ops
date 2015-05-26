@@ -74,6 +74,7 @@ telinit q:
 
   {% if lvm.enabled|default(False) %}
     {% do services['boot'].append('lvm') %}
+    {% do services['boot'].append('lvmetad') %}
   {% endif %}
 
 /etc/runlevels:
