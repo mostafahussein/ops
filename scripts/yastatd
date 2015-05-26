@@ -37,6 +37,7 @@ from stat_linux import sysstat
 from utils.sistr import sistr
 from utils import nagios
 from nagios.check_ssh import check_ssh as _check_ssh
+from nagios.check_rsync import check_rsync as _check_rsync
 
 # pylint: disable=bare-except
 try:
@@ -234,6 +235,11 @@ class stat_thread(threading.Thread):
             auth = None
         ssh_ret = _check_ssh('127.0.0.1', version, auth)
         return ssh_ret
+
+    @staticmethod
+    def check_rsync(**param):
+        rsync_ret = _check_rsync('127.0.0.1')
+        return rsync_ret
 
     @staticmethod
     def check_cpu(stat, stat_last, timedelta,
