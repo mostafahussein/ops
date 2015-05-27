@@ -36,14 +36,25 @@ def salt_diff(cmd):
         elif isinstance(states, dict):
             for module, state in states.items():
                 if not state.get('result'):
-                    diffs[module] = state.get('comment')
+                    if not diffs.get(module):
+                        diffs[module] = {}
+                    diffs[module]['comment'] = state.get('comment')
+                    if state.get('changes'):
+                        diffs[module]['changes'] = state.get('changes')
         else:
             raise Exception("Unknown type `%s'" % (type(states),))
         if diffs:
             content.append("> %s" % (host,))
             for k, v in diffs.items():
                 content.append(">> %s" % (k,))
-                for v0 in v.split('\n'):
+                comment = v.get('comment')
+                changes = v.get('changes', {})
+                for v0 in comment.split('\n'):
                     content.append(">>> %s" % (v0,))
+                if changes:
+                    for t,v0 in changes.iteritems():
+                        content.append(">>> %s" % (t,))
+                        for v1 in v0.split('\n'):
+                            content.append(">>> %s" % (v1,))
 
     return content
