@@ -9,11 +9,11 @@
 {%- endif -%}
 {%- import_yaml ip_conf as ip with context -%}
 {%- set idname = grains['id'].split(".")[0] -%}
-{%- set nicconfs = ip.nics.get(grains['id'], ()) -%}
+{%- set nicconfs = ip.get(grains['id'], ()) -%}
 {%- if not nicconfs -%}
-  {%- set nicconfs = ip.nics.get(idname, ()) -%}
+  {%- set nicconfs = ip.get(idname, ()) -%}
 {%- endif -%}
-{%- for l in nicconfs|sort -%}
+{%- for l in nicconfs.nics|sort -%}
   {%- if l.type.split('_')[0] == 'host' -%}
     {%- if l.ip is defined %}
 config_{{ l.name }}="{{ l.ip | join("\n", attribute="addr") }}"

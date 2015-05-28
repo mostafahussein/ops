@@ -16,9 +16,9 @@
 {%- import_yaml ip_conf as ip with context -%}
 {% set idname = grains['id'].split(".")[0] %}
 
-{% set nicconfs = ip.nics.get(grains['id'], ()) %}
+{% set nicconfs = ip.get(grains['id'], ()) %}
 {% if not nicconfs %}
-  {% set nicconfs = ip.nics.get(idname, ()) %}
+  {% set nicconfs = ip.get(idname, ()) %}
 {% endif %}
 
 {% set netmask2len = {
@@ -88,7 +88,7 @@ service.net.{{ i }}:
 
   {% set lo_is_defined = False %}
 
-  {% for l in nicconfs %}
+  {% for l in nicconfs.nics|default(()) %}
     {% if l.name == "lo" %}{% set lo_is_defined = True %}{% endif %}
     {% if l.type.split('_')[0] == 'host' %}
 /etc/sysconfig/network-scripts/ifcfg-{{ l.name }}:
@@ -133,7 +133,7 @@ service.networkmanager:
 {% if ip.nics is defined %}
 
   {% set vip = {} %}
-  {% for i in nicconfs %}
+  {% for i in nicconfs.nics|default(()) %}
     {% if i.vip is defined %}
       {% if i.name not in vip %}
         {% do vip.update({i.name:[]}) %}
@@ -146,7 +146,7 @@ service.networkmanager:
 
   {% set ip_seted = {} %}
   {% set ip_seted6 = {} %}
-  {% for l in nicconfs %}{%- if l.type.split('_')[0] == 'host' -%}
+  {% for l in nicconfs|default(()) %}{%- if l.type.split('_')[0] == 'host' -%}
     {% set iface = l.name.split(":")[0] %}
     {% if iface not in ip_seted %}
       {% do ip_seted.update({iface:[]}) %}

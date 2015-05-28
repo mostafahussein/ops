@@ -8,7 +8,7 @@
   {% set duplex = ethtool.conf.duplex|default('Full') %}
   {% set speed = ethtool.conf.speed %}
 
-  {% for n in ip.nics.get(idname, ()) %}
+  {% for n in ip.get(idname, {}).get('nics',()) %}
     {% if n.name not in ("lo",) and n.type.split('_')[0] in ("host",) %}
       {% set sduplex = duplex %}
       {% set sspeed = speed %}

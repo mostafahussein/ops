@@ -9,10 +9,14 @@
 {%- endif -%}
 {%- import_yaml ip_conf as ip with context -%}
 {%- set idname = grains['id'].split(".")[0] -%}
+{%- set nics = ip.get(grains['id']) -%}
+{%- if not nics -%}
+  {%- set nics = ip.get(idname) -%}
+{%- endif -%}
 auto lo
 iface lo inet loopback
 
-{%- if ip.nics is defined -%}{%- for l in ip.nics.get(idname, ()) -%}
+{%- if nics -%}{%- for l in nics.get('nics', ()) -%}
   {%- if l.type.split('_')[0] == 'host'%}
 {% if l.name != "lo" %}
 auto {{ l.name }}{% endif %}
