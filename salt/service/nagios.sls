@@ -1,24 +1,7 @@
 {% import_yaml "common/config/packages.yaml" as pkgs with context %}
 {% import_yaml "config/nagios.yaml" as nagios with context %}
 
-service.nagios:
-  pkg.installed:
-    - name: {{ pkgs.nagios | default('nagios') }}
-    - refresh: False
-  service.running:
-    - name: nagios
-    - enable: True
-{% if grains['os'] == "Gentoo" %}
-    - sig: "/usr/sbin/nagios -d /etc/nagios/nagios.cfg"
-{% endif %}
-{% if nagios.config is defined %}
-    - watch:
-  {% for l in nagios.config %}
-    {% for f in l.configs %}
-        - file: {{ l.location }}/{{ f.name }}
-    {% endfor %}
-  {% endfor %}
-{% endif %}
+{% set nagios_cfgs = [] %}
 
 {% if nagios.config is defined %}
   {% for l in nagios.config %}
@@ -35,23 +18,42 @@ service.nagios:
     - exclude_pat: ".keep*"
       {% endif %}
     {% endif %}
+    {% if l.configs|default(False) %}
     - require:
-    {% for f in l.configs %}
+      {% for f in l.configs %}
+        {% do nagios_cfgs.append('/'.join((l.location, f.name))) %}
       - file: {{ l.location }}/{{ f.name }}
-    {% endfor %}
-    {% for f in l.configs %}
+      {% endfor %}
+      {% for f in l.configs %}
 {{ l.location }}/{{ f.name }}:
   file.managed:
     - source:
-      {% if f.source is defined %}
+        {% if f.source is defined %}
       - {{ f.source }}
-      {% endif %}
+        {% endif %}
       - salt:/{{ l.location }}/{{ f.name }}
-      - salt://common{{ l.location }}/{{ f.name }}
     - user: {{ f.user|default('root') }}
     - group: {{ f.group|default('root') }}
     - mode: {{ f.mode|default('0644') }}
     - template: jinja
-    {% endfor %}
+      {% endfor %}
+    {% endif %}
+  {% endfor %}
+{% endif %}
+
+service.nagios:
+  pkg.installed:
+    - name: {{ pkgs.nagios | default('nagios') }}
+    - refresh: False
+  service.running:
+    - name: nagios
+    - enable: True
+{% if grains['os'] == "Gentoo" %}
+    - sig: "/usr/sbin/nagios -d /etc/nagios/nagios.cfg"
+{% endif %}
+{% if nagios_cfgs %}
+    - watch:
+  {% for l in nagios_cfgs %}
+        - file: {{ l }}
   {% endfor %}
 {% endif %}
