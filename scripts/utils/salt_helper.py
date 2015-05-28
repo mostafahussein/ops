@@ -53,7 +53,7 @@ def salt_diff(cmd):
                     content.append(">>> %s" % (v0,))
                 if changes:
                     for t,v0 in changes.iteritems():
-                        content.append(">>> %s" % (t,))
+                        content.append(">>> %s:" % (t,))
                         for v1 in v0.split('\n'):
                             content.append(">>> %s" % (v1,))
 
