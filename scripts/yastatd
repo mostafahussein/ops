@@ -23,6 +23,7 @@ import logging
 import threading
 import traceback
 import multiprocessing
+import socket
 
 from os import path as osp
 from datetime import datetime
@@ -38,7 +39,7 @@ from utils.sistr import sistr
 from utils import nagios
 from nagios.check_ssh import check_ssh as _check_ssh
 from nagios.check_rsync import check_rsync as _check_rsync
-from utils.mail import count_mail_queue
+from utils.mail import get_mail_banner, count_mail_queue
 
 # pylint: disable=bare-except
 try:
@@ -245,6 +246,8 @@ class stat_thread(threading.Thread):
     @staticmethod
     def check_mail(mail_type='exim', **param):
         try:
+            banner = get_mail_banner()
+
             _mail_num, _ret_code, _ret_msg = count_mail_queue(mail_type)
             if _ret_code:
                 _msg = _ret_msg
@@ -253,15 +256,17 @@ class stat_thread(threading.Thread):
                 _msg = '{0} mails in the queue'.format(_mail_num)
                 ret = STATE_WARNING
             else:
-                _msg = ''
+                _msg = banner
                 ret = STATE_OK
+        except socket.error as e:
+            _msg = 'mail process not running'
+            ret = STATE_CRITICAL
         except Exception as e:
             _msg = str(e)
             ret = STATE_UNKNOWN
 
-        msg = "Mail({0}) {1}".format(mail_type, nagios.STATE_STR[ret])
-        if _msg:
-            msg = "{0} - {1}".format(msg, _msg)
+        msg = "Mail({0}) {1} - {2}".format(mail_type, nagios.STATE_STR[ret],
+                                           _msg)
 
         return (ret, msg)
 

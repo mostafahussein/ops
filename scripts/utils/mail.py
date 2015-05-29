@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import sys
 import shlex
+import socket
 
 from . import exec_cmd
 
@@ -32,3 +33,15 @@ def count_exim_queue():
             ret_code = -1
 
     return (mail_num, ret_code, msg)
+
+
+def get_mail_banner(host='127.0.0.1', port=25):
+    '''first received data after socket connected
+
+    TODO: socket connect can be in util function, with utils/ssh.py
+    '''
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.connect((host, port))
+    banner = sock.recv(1024).strip()
+    sock.close()
+    return banner
