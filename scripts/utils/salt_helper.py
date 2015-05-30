@@ -46,15 +46,25 @@ def salt_diff(cmd):
         if diffs:
             content.append("> %s" % (host,))
             for k, v in diffs.items():
-                content.append(">> %s" % (k,))
                 comment = v.get('comment')
                 changes = v.get('changes', {})
-                for v0 in comment.split('\n'):
-                    content.append(">>> %s" % (v0,))
+                content.append(">> %s" % (k,))
+                salt_format(comment, content, ">>")
                 if changes:
-                    for t,v0 in changes.iteritems():
-                        content.append(">>> %s:" % (t,))
-                        for v1 in v0.split('\n'):
-                            content.append(">>> %s" % (v1,))
+                    salt_format(changes, content, ">>")
+
 
     return content
+
+
+def salt_format(obj, out, indent):
+    if isinstance(obj, basestring):
+        for v in obj.split('\n'):
+            out.append("%s> %s" % (indent, v))
+    elif isinstance(obj, dict):
+        for k,v in obj.iteritems():
+            salt_format(k, out, "%s>" % (indent,))
+            salt_format(v, out, "%s>" % (indent,))
+    else:
+        out.append("%s> %s unsupported yet" % (indent, type(obj)))
+        out.append("%s> %s" % (indent, obj))
