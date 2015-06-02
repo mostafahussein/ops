@@ -45,14 +45,7 @@ def salt_diff(cmd):
             raise Exception("Unknown type `%s'" % (type(states),))
         if diffs:
             content.append("> %s" % (host,))
-            for k, v in diffs.items():
-                comment = v.get('comment')
-                changes = v.get('changes', {})
-                content.append(">> %s" % (k,))
-                salt_format(comment, content, ">>")
-                if changes:
-                    salt_format(changes, content, ">>")
-
+            salt_format(diffs, content, "")
 
     return content
 
