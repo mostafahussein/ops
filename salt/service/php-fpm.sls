@@ -10,10 +10,10 @@ service.php-fpm:
     - sig: "php-fpm: master process"
     - watch:
       - file: service.php-fpm
-      - file: /etc/php/fpm-php5.5/php.ini
+      - file: /etc/php/fpm-php5.6/php.ini
   file.managed:
-    - name: /etc/php/fpm-php5.5/php-fpm.conf
-    - source: salt://common/etc/php/fpm-php5.5/php-fpm.conf
+    - name: /etc/php/fpm-php5.6/php-fpm.conf
+    - source: salt://common/etc/php/fpm-php5.6/php-fpm.conf
     - mode: 644
     - user: root
     - group: root
@@ -23,9 +23,9 @@ service.php-fpm:
         group: nobody
         start_servers: 5
 
-/etc/php/fpm-php5.5/php.ini:
+/etc/php/fpm-php5.6/php.ini:
   file.managed:
-    - source: salt://common/etc/php/fpm-php5.5/php.ini
+    - source: salt://common/etc/php/fpm-php5.6/php.ini
     - mode: 644
     - user: root
     - group: root
