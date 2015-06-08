@@ -17,12 +17,13 @@ from utils import ldap_ops as ldap_ops
 if __name__ == "__main__":
     try:
         slapd = ldap_ops.ldap_ops()
-        for user in yaml.load_all(open("user.yaml", "r")):
-            sn = user.get("sn")
-            givenName = user.get("givenName")
-            user['cn'] = " ".join((sn, givenName))
-            user['gecos'] = user['cn']
-            slapd.user_add(user)
+        if osp.exists("user.yaml"):
+            for user in yaml.load_all(open("user.yaml", "r")):
+                sn = user.get("sn")
+                givenName = user.get("givenName")
+                user['cn'] = " ".join((sn, givenName))
+                user['gecos'] = user['cn']
+                slapd.user_add(user)
 
         slapd.update_group_from_users()
 

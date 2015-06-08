@@ -191,7 +191,7 @@ class ldap_ops:
         uids = [l[1].get('uid')[0] for l in users + leaves]
         if users or leaves:
             print("!! uid `%s' has been used, please change it" % uid)
-            #return
+            return
 
         password = user.get('password')
         if password:
@@ -220,7 +220,11 @@ class ldap_ops:
                 v = [str(v)]
             attrs[k] = v
         print(">> Add user `%s'" % uid)
-        self.ldapobject.add_ext_s(dn, ldap.modlist.addModlist(attrs))
+        try:
+            self.ldapobject.add_ext_s(dn, ldap.modlist.addModlist(attrs))
+        except ldap.ALREADY_EXISTS, e:
+            print("!! User `%s' already exists, please check" % uid)
+            return
 
         if password:
             passwd_cmd = self.krb5_passwd % (password, uid)
@@ -244,7 +248,7 @@ class ldap_ops:
         groups = {}
         for user in self.query(**user_args):
             uid = user[1].get('uid')[0]
-            for ou in user[1].get('ou'):
+            for ou in user[1].get('ou', []):
                 if ou not in groups:
                     groups[ou] = []
                 groups[ou].append(uid)
@@ -252,10 +256,10 @@ class ldap_ops:
             ou = grp[1].get('cn')[0]
             grp_modlist = []
             for uid in groups.get(ou):
-                if uid in grp[1].get('memberUid'):
+                if uid in grp[1].get('memberUid', []):
                     continue
                 grp_modlist.append((ldap.MOD_ADD, "memberUid", uid))
-            for uid in grp[1].get('memberUid'):
+            for uid in grp[1].get('memberUid', []):
                 if uid in groups.get(ou):
                     continue
                 grp_modlist.append((ldap.MOD_DELETE, "memberUid", uid))
