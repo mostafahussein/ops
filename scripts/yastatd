@@ -87,10 +87,10 @@ def run_stat(**kwargs):
     return stats
 
 
-class stat_thread(threading.Thread):
+class base_thread(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
-        self.name = "stat_thread"
+        self.name = self.__class__.__name__
         if sys.hexversion < 0x2070000:
             self.log = ops_log_open(level=logging.INFO)
             syslog.openlog('yastatd', syslog.LOG_PID, syslog.LOG_LOCAL3)
@@ -100,22 +100,7 @@ class stat_thread(threading.Thread):
                                             'level': logging.INFO})
 
     def run(self):
-        try:
-            work_dir = osp.dirname(osp.realpath(__file__))
-            yastat_cfg = yaml.load(open(osp.join(work_dir, "yastatd.yaml"),
-                                        "r"))
-        except Exception, e:
-            yastat_cfg = {}
-
-        if 'nagios' in yastat_cfg:
-            nagios_cfg = yastat_cfg.pop('nagios')
-        else:
-            nagios_cfg = {}
-
-        if 'domain' in yastat_cfg:
-            domain = yastat_cfg.pop('domain')
-        else:
-            domain = None
+        yastat_cfg, nagios_cfg, domain = self.load_cfg()
 
         try:
             check_dir(0755, dir_spool)
@@ -161,8 +146,12 @@ class stat_thread(threading.Thread):
 
                     nagios_rets = {}
                     for k, v in nagios_cfg.iteritems():
-                        if k in ('ssh', 'rsync', 'mail'):
-                            continue
+                        if self.name == 'func_thread':
+                            if k not in ('ssh', 'rsync', 'mail'):
+                                continue
+                        elif self.name == 'stat_thread':
+                            if k in ('ssh', 'rsync', 'mail'):
+                                continue
                         if time_current >= check_time_next[k]:
                             r = self.run_check(k, v,
                                                stats,
@@ -194,6 +183,25 @@ class stat_thread(threading.Thread):
                 self.log.critical("%s, %s" % (e, traceback.format_exc()))
             time.sleep(SECOND)
 
+    def load_cfg(self, cfg_file='yastatd.yaml'):
+        try:
+            work_dir = osp.dirname(osp.realpath(__file__))
+            yastat_cfg = yaml.load(open(osp.join(work_dir, cfg_file), "r"))
+        except Exception, e:
+            yastat_cfg = {}
+
+        if 'nagios' in yastat_cfg:
+            nagios_cfg = yastat_cfg.pop('nagios')
+        else:
+            nagios_cfg = {}
+
+        if 'domain' in yastat_cfg:
+            domain = yastat_cfg.pop('domain')
+        else:
+            domain = None
+
+        return yastat_cfg, nagios_cfg, domain
+
     def run_check(self, kind, cfg, stats, stats_last, check_time_next):
         w_t = cfg.get('warning')
         c_t = cfg.get('critical')
@@ -201,7 +209,8 @@ class stat_thread(threading.Thread):
 
         time_current = stats['timestamp']
 
-        check_func = getattr(stat_thread, 'check_{0}'.format(kind))
+        check_thread = getattr(sys.modules[__name__], self.name)
+        check_func = getattr(check_thread, 'check_{0}'.format(kind))
 
         r = None
         stat = stats.get(kind)
@@ -230,6 +239,12 @@ class stat_thread(threading.Thread):
 
         check_time_next[kind] += interval * MINUTE
         return {kind: r} if r else None
+
+
+class stat_thread(base_thread):
+    '''for stat service'''
+    def __init__(self):
+        super(stat_thread, self).__init__()
 
     @staticmethod
     def check_cpu(stat, stat_last, timedelta,
@@ -305,88 +320,10 @@ class stat_thread(threading.Thread):
         return (ret, ' '.join(("DISK Usage:", ', '.join(msg))))
 
 
-class func_thread(threading.Thread):
+class func_thread(base_thread):
+    '''for func services'''
     def __init__(self):
-        threading.Thread.__init__(self)
-        self.name = "func_thread"
-        self.log = ops_log_open(level=logging.INFO,
-                                syslog={'ident': "yastatd",
-                                        'level': logging.INFO})
-
-    def run(self):
-        try:
-            work_dir = osp.dirname(osp.realpath(__file__))
-            yastat_cfg = yaml.load(open(osp.join(work_dir, "yastatd.yaml"),
-                                        "r"))
-        except Exception, e:
-            yastat_cfg = {}
-
-        if 'nagios' in yastat_cfg:
-            nagios_cfg = yastat_cfg.pop('nagios')
-        else:
-            nagios_cfg = {}
-
-        if 'domain' in yastat_cfg:
-            domain = yastat_cfg.pop('domain')
-        else:
-            domain = None
-
-        time_current = int(time.time())
-        time_last = time_next = time_current
-
-        # calculate every check item's next check time
-        check_time_next = {}
-        for k, v in nagios_cfg.iteritems():
-            check_time_next[k] = time_current
-
-        while not do_exit.is_set():
-            try:
-                time_current = int(time.time())
-
-                # system time changed?
-                if time_current < time_last:
-                    # delete newer record?
-                    pass
-                elif time_current >= time_next:
-                    nagios_rets = {}
-                    for k, v in nagios_cfg.iteritems():
-                        if k not in ('ssh', 'rsync', 'mail'):
-                            continue
-                        if time_current >= check_time_next[k]:
-                            r = self.run_check(k, v, check_time_next)
-                            if r: nagios_rets.update(r)
-
-                    if nagios_rets:
-                        if do_debug:
-                            print json.dumps(nagios_rets, indent=2)
-                        else:
-                            nagios_rets['rand'] = random.randint(0, 1000)
-                            if domain:
-                                nagios_rets['domain'] = domain
-                            syslog.syslog(syslog.LOG_NOTICE,
-                                          json.dumps(nagios_rets))
-                            pass
-
-                    time_last = time_current
-                    time_next = time_current + MINUTE
-            except Exception, e:
-                self.log.critical("%s, %s" % (e, traceback.format_exc()))
-            time.sleep(SECOND)
-
-    def run_check(self, kind, cfg, check_time_next):
-        w_t = cfg.get('warning')
-        c_t = cfg.get('critical')
-        interval = cfg.get('interval')
-
-        check_func = getattr(func_thread, 'check_{0}'.format(kind))
-
-        r = None
-        if cfg.get('is_func'):
-            r = check_func(**cfg)
-
-        check_time_next[kind] += interval * MINUTE
-        return {kind: r} if r else None
-
+        super(func_thread, self).__init__()
 
     @staticmethod
     def check_ssh(version='2', auth=('publickey',), **param):
