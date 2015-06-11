@@ -64,6 +64,10 @@ STATE_UNKNOWN = 3
 SECOND = 1
 MINUTE = 60 * SECOND
 
+THREAD_MAP = {
+    'is_func': 'func_thread',
+}
+
 
 def usage(code, msg=''):
     print >> sys.stderr, __doc__ % globals()
@@ -146,12 +150,17 @@ class base_thread(threading.Thread):
 
                     nagios_rets = {}
                     for k, v in nagios_cfg.iteritems():
-                        if self.name == 'func_thread':
-                            if k not in ('ssh', 'rsync', 'mail'):
-                                continue
-                        elif self.name == 'stat_thread':
-                            if k in ('ssh', 'rsync', 'mail'):
-                                continue
+                        # control nagios service in which thread
+                        _f = False
+                        for flag, thread_name in THREAD_MAP.iteritems():
+                            if self.name == thread_name and not v.get(flag):
+                                _f = True
+                        if _f:
+                            continue
+                        # default thread
+                        if self.name == 'stat_thread' and \
+                                tuple(set(v.keys()) & set(THREAD_MAP.keys())):
+                            continue
                         if time_current >= check_time_next[k]:
                             r = self.run_check(k, v,
                                                stats,
