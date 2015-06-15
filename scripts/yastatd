@@ -133,20 +133,10 @@ class base_thread(threading.Thread):
                     # delete newer record?
                     pass
                 elif time_current >= time_next:
-                    #  collect data & save to json/yyyymmdd/hhmmss.json
                     if yastat_cfg:
                         stats = run_stat(**yastat_cfg)
                     else:
                         stats = run_stat()
-                    timestamp = stats.get('timestamp')
-                    json_datetime = datetime.fromtimestamp(timestamp)
-                    json_date = json_datetime.strftime('%Y%m%d')
-                    json_time = json_datetime.strftime('%H%M%S')
-                    json_dir = osp.join(dir_json, json_date)
-                    check_dir(0755, json_dir)
-                    json_file = osp.join(json_dir,
-                                         '.'.join((json_time, 'json')))
-                    json_file_tmp = '.'.join((json_file, 'tmp'))
 
                     nagios_rets = {}
                     for k, v in nagios_cfg.iteritems():
@@ -177,15 +167,13 @@ class base_thread(threading.Thread):
                                 nagios_rets['domain'] = domain
                             syslog.syslog(syslog.LOG_NOTICE,
                                           json.dumps(nagios_rets))
-                            pass
 
-                    if do_debug:
-                        #print json.dumps({timestamp: stats}, indent=2)
-                        pass
-                    else:
-                        json.dump({timestamp: stats},
-                                  open(json_file_tmp, 'w+'),)
-                        os.rename(json_file_tmp, json_file)
+                    if self.name == 'stat_thread':
+                        if do_debug:
+                            #print json.dumps({timestamp: stats}, indent=2)
+                            pass
+                        else:
+                            stat_thread.save_data(stats)
                     time_last = time_current
                     time_next = time_current + MINUTE
             except Exception, e:
@@ -254,6 +242,23 @@ class stat_thread(base_thread):
     '''for stat service'''
     def __init__(self):
         super(stat_thread, self).__init__()
+
+    @staticmethod
+    def save_data(stats):
+        #  collect data & save to json/yyyymmdd/hhmmss.json
+        timestamp = stats.get('timestamp')
+        json_datetime = datetime.fromtimestamp(timestamp)
+        json_date = json_datetime.strftime('%Y%m%d')
+        json_time = json_datetime.strftime('%H%M%S')
+        json_dir = osp.join(dir_json, json_date)
+        check_dir(0755, json_dir)
+        json_file = osp.join(json_dir,
+                             '.'.join((json_time, 'json')))
+        json_file_tmp = '.'.join((json_file, 'tmp'))
+
+        json.dump({timestamp: stats},
+                  open(json_file_tmp, 'w+'),)
+        os.rename(json_file_tmp, json_file)
 
     @staticmethod
     def check_cpu(stat, stat_last, timedelta,
