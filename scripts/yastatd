@@ -133,10 +133,13 @@ class base_thread(threading.Thread):
                     # delete newer record?
                     pass
                 elif time_current >= time_next:
-                    if yastat_cfg:
-                        stats = run_stat(**yastat_cfg)
+                    if self.name == 'stat_thread':
+                        if yastat_cfg:
+                            stats = run_stat(**yastat_cfg)
+                        else:
+                            stats = run_stat()
                     else:
-                        stats = run_stat()
+                        stats = {}
 
                     nagios_rets = {}
                     for k, v in nagios_cfg.iteritems():
@@ -204,7 +207,7 @@ class base_thread(threading.Thread):
         c_t = cfg.get('critical')
         interval = cfg.get('interval')
 
-        time_current = stats['timestamp']
+        time_current = stats.get('timestamp')
 
         check_thread = getattr(sys.modules[__name__], self.name)
         check_func = getattr(check_thread, 'check_{0}'.format(kind))
