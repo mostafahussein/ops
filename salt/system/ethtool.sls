@@ -1,28 +1,28 @@
 {% import_yaml "config/ip.yaml" as ip with context %}
-{% import_yaml "config/ethtool.yaml" as ethtool with context %}
+{% import_yaml "config/nics.yaml" as nics with context %}
 
-{% set idname = grains['id'].split('.')[0] %}
+{% set ip = ip.get(nics.vars.domain) %}
+{% if grains['id'] in ip %}
+  {% set ip = ip.get(grains['id']) %}
+{% else %}
+  {% set idname = grains['id'].split('.')[0] %}
+  {% set ip = ip.get(idname) %}
+{% endif %}
 
 {% if grains.get('virtual') not in ('kvm', 'xen') %}
 
-  {% set duplex = ethtool.conf.duplex|default('Full') %}
-  {% set speed = ethtool.conf.speed %}
+  {% set local_conf = ip.get('ethtool', {}) %}
 
-  {% for n in ip.get(idname, {}).get('nics',()) %}
+  {% for n in ip.get('nics',()) %}
     {% if n.name not in ("lo",) and n.type.split('_')[0] in ("host",) %}
-      {% set sduplex = duplex %}
-      {% set sspeed = speed %}
+      {% set sduplex = 'Full' %}
+      {% set sspeed = 1000 %}
       {% set slink = True %}
-      {% set local_conf = ethtool.conf.get('local') %}
       {% if local_conf %}
-      {% set local_nic_conf = local_conf.get(n.name, {}) %}
-        {% set slink = local_nic_conf.get('link', True) %}
-        {% if local_nic_conf.get('duplex') %}
-          {% set sduplex = local_nic_conf.get('duplex') %}
-        {% endif %}
-        {% if local_nic_conf.get('speed') %}
-          {% set sspeed = local_nic_conf.get('speed') %}
-        {% endif %}
+        {% set local_nic_conf = local_conf.get(n.name, {}) %}
+        {% set slink = local_nic_conf.get('link', slink) %}
+        {% set sduplex = local_nic_conf.get('duplex', sduplex) %}
+        {% set sspeed = local_nic_conf.get('speed', sspeed) %}
       {% endif %}
       {% set settings = {} %}
       {% for l in salt['cmd.run'](' '.join(('ethtool', n.name))).splitlines() %}

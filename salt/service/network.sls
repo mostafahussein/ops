@@ -2,18 +2,8 @@
 
 {% import_yaml "config/nics.yaml" as nics with context %}
 
-{% set ip_conf = "config/ip.yaml" %}
-{% if grains["os"] == "CentOS" %}
-  {%- if nics.vars is defined -%}
-    {%- load_yaml as vars %}
-{{ nics.vars }}
-    {%- endload -%}
-    {%- if vars.domain is defined -%}
-      {%- set ip_conf = "config/ip.%s.yaml"|format(vars.domain) -%}
-    {%- endif -%}
-  {%- endif -%}
-{%- endif -%}
-{%- import_yaml ip_conf as ip with context -%}
+{%- import_yaml "config/ip.yaml" as ip with context -%}
+{%- set ip = ip.get(nics.vars.domain) -%}
 {% set idname = grains['id'].split(".")[0] %}
 
 {% set nicconfs = ip.get(grains['id'], ()) %}
