@@ -58,15 +58,14 @@ pid=$(< "$pidfile")
 echo ">> Found running nginx master w/ pid ${pid}"
 echo ">> Try to start a new nginx master and worker process"
 kill -USR2 $pid
-sleep 1
 while [ 1 ] ; do
+    sleep 1
     if [ ! -f "${opidfile}" ] ; then
-        echo "!! New process start failed, ${opidfile} not found"
-        exit 1
+        echo "!! New process not started yet, ${opidfile} not found, wait 1s"
+        continue
     fi
     if [ ! -f "${pidfile}" ] ; then
         echo "** new process not started yet, wait 1s"
-        sleep 1
         continue
     fi
     npid=$(< $pidfile)
