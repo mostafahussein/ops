@@ -124,8 +124,6 @@ class base_thread(threading.Thread):
 
         while not do_exit.is_set():
             try:
-                check_dir(0755, dir_json)
-
                 time_current = int(time.time())
 
                 # system time changed?
@@ -188,6 +186,9 @@ class base_thread(threading.Thread):
             work_dir = osp.dirname(osp.realpath(__file__))
             yastat_cfg = yaml.load(open(osp.join(work_dir, cfg_file), "r"))
         except Exception, e:
+            yastat_cfg = {}
+
+        if yastat_cfg is None:
             yastat_cfg = {}
 
         if 'nagios' in yastat_cfg:
@@ -254,6 +255,7 @@ class stat_thread(base_thread):
         json_date = json_datetime.strftime('%Y%m%d')
         json_time = json_datetime.strftime('%H%M%S')
         json_dir = osp.join(dir_json, json_date)
+        check_dir(0755, dir_json)
         check_dir(0755, json_dir)
         json_file = osp.join(json_dir,
                              '.'.join((json_time, 'json')))
