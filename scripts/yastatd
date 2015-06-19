@@ -76,6 +76,25 @@ def usage(code, msg=''):
     sys.exit(code)
 
 
+def load_cfg(cfg_file='yastatd.yaml'):
+    try:
+        work_dir = osp.dirname(osp.realpath(__file__))
+        yastat_cfg = yaml.load(open(osp.join(work_dir, cfg_file), "r"))
+    except Exception, e:
+        yastat_cfg = {}
+
+    if yastat_cfg is None:
+        yastat_cfg = {}
+
+    nagios_cfg = yastat_cfg.pop('nagios', {})
+    if not nagios_cfg:
+        nagios_cfg = {}
+
+    domain = yastat_cfg.pop('domain', None)
+
+    return yastat_cfg, nagios_cfg, domain
+
+
 def run_stat(**kwargs):
     stats = sysstat()
     for k, v in kwargs.items():
@@ -92,7 +111,7 @@ def run_stat(**kwargs):
 
 
 class base_thread(threading.Thread):
-    def __init__(self):
+    def __init__(self, **kwargs):
         threading.Thread.__init__(self)
         self.name = self.__class__.__name__
         if sys.hexversion < 0x2070000:
@@ -102,10 +121,11 @@ class base_thread(threading.Thread):
             self.log = ops_log_open(level=logging.INFO,
                                     syslog={'ident': "yastatd",
                                             'level': logging.INFO})
+        self.yastat_cfg = kwargs.get('yastat_cfg', {})
+        self.nagios_cfg = kwargs.get('nagios_cfg', {})
+        self.domain = kwargs.get('domain')
 
     def run(self):
-        yastat_cfg, nagios_cfg, domain = self.load_cfg()
-
         try:
             check_dir(0755, dir_spool)
             os.chdir(dir_spool)
@@ -117,7 +137,7 @@ class base_thread(threading.Thread):
         # calculate every check item's next check time
         check_time_next = {}
         stats_last = {}
-        for k, v in nagios_cfg.iteritems():
+        for k, v in self.nagios_cfg.iteritems():
             check_time_next[k] = time_current
             if v.get('is_counter'):
                 stats_last[k] = None
@@ -132,15 +152,15 @@ class base_thread(threading.Thread):
                     pass
                 elif time_current >= time_next:
                     if self.name == 'stat_thread':
-                        if yastat_cfg:
-                            stats = run_stat(**yastat_cfg)
+                        if self.yastat_cfg:
+                            stats = run_stat(**self.yastat_cfg)
                         else:
                             stats = run_stat()
                     else:
                         stats = {}
 
                     nagios_rets = {}
-                    for k, v in nagios_cfg.iteritems():
+                    for k, v in self.nagios_cfg.iteritems():
                         # control nagios service in which thread
                         _f = False
                         for flag, thread_name in THREAD_MAP.iteritems():
@@ -164,8 +184,8 @@ class base_thread(threading.Thread):
                             print json.dumps(nagios_rets, indent=2)
                         else:
                             nagios_rets['rand'] = random.randint(0, 1000)
-                            if domain:
-                                nagios_rets['domain'] = domain
+                            if self.domain:
+                                nagios_rets['domain'] = self.domain
                             syslog.syslog(syslog.LOG_NOTICE,
                                           json.dumps(nagios_rets))
 
@@ -180,28 +200,6 @@ class base_thread(threading.Thread):
             except Exception, e:
                 self.log.critical("%s, %s" % (e, traceback.format_exc()))
             time.sleep(SECOND)
-
-    def load_cfg(self, cfg_file='yastatd.yaml'):
-        try:
-            work_dir = osp.dirname(osp.realpath(__file__))
-            yastat_cfg = yaml.load(open(osp.join(work_dir, cfg_file), "r"))
-        except Exception, e:
-            yastat_cfg = {}
-
-        if yastat_cfg is None:
-            yastat_cfg = {}
-
-        if 'nagios' in yastat_cfg:
-            nagios_cfg = yastat_cfg.pop('nagios')
-        else:
-            nagios_cfg = {}
-
-        if 'domain' in yastat_cfg:
-            domain = yastat_cfg.pop('domain')
-        else:
-            domain = None
-
-        return yastat_cfg, nagios_cfg, domain
 
     def run_check(self, kind, cfg, stats, stats_last, check_time_next):
         w_t = cfg.get('warning')
@@ -244,8 +242,8 @@ class base_thread(threading.Thread):
 
 class stat_thread(base_thread):
     '''for stat service'''
-    def __init__(self):
-        super(stat_thread, self).__init__()
+    def __init__(self, **kwargs):
+        super(stat_thread, self).__init__(**kwargs)
 
     @staticmethod
     def save_data(stats):
@@ -341,8 +339,8 @@ class stat_thread(base_thread):
 
 class func_thread(base_thread):
     '''for func services'''
-    def __init__(self):
-        super(func_thread, self).__init__()
+    def __init__(self, **kwargs):
+        super(func_thread, self).__init__(**kwargs)
 
     @staticmethod
     def check_ssh(version='2', auth=('publickey',), **param):
@@ -408,7 +406,17 @@ if __name__ == "__main__":
 
     multiprocessing.freeze_support()
 
-    threads = (stat_thread(), func_thread())
+    yastat_cfg, nagios_cfg, domain = load_cfg()
+
+    threads = [
+        stat_thread(yastat_cfg=yastat_cfg, nagios_cfg=nagios_cfg, domain=domain),
+    ]
+
+    for k, v in nagios_cfg.iteritems():
+        if 'is_func' in v:
+            threads.append(func_thread(nagios_cfg=nagios_cfg))
+            break
+
     for thread in threads:
         thread.start()
     try:
